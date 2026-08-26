@@ -1,0 +1,223 @@
+diff --git a/src/net/session.ts b/src/net/session.ts
+index 5826673..17f9165 100644
+--- a/src/net/session.ts
++++ b/src/net/session.ts
+@@ -284,8 +284,12 @@ export class Session {
+         // No quitting a ranked match — you win or you lose. (Disconnecting still
+         // forfeits.) 'q' is ignored here so an accidental press can't drop you.
+         if (this.match && this.match.phase === 'fight') predictLocal(this.match, this.role, inp);
+-        if (this.alive && !this.terminal.blocked) this.renderCurrent();
+-        return; // rendered the predicted frame; skip the throttled render below
++        // Input send + local prediction run every tick (TICK_HZ) for zero round-trip
++        // latency, but the VISUAL refresh falls through to the shared adaptive
++        // scheduler below — the same 8-15 Hz cadence every other session uses.
++        // (Previously this branch rendered every tick = 30 Hz: double the intended
++        // rate for a normal terminal, and up to ~3.75x the adaptive tier on a large
++        // one. Prediction is unaffected — only how often we repaint changed.)
+       } else if (this.practice) this.stepPractice();
+       else if (this.isStepper && this.match && this.peer && this.peer.alive) {
+         stepMatch(this.match, this.fightInput.snapshot(), this.peer.fightInput.snapshot());
+@@ -356,7 +360,16 @@ export class Session {
+       this.renderInFlight = true;
+       const full = this.forceFull; this.forceFull = false;
+       RENDER_POOL.render(this.sid, this.match, cols, rows, this.renderMode, this.practice, this.keyBindings, full)
+-        .then((bytes) => { this.renderInFlight = false; if (this.alive && bytes) this.terminal.paintBytes(bytes); })
++        .then((bytes) => {
++          this.renderInFlight = false;
++          if (!this.alive) return;
++          // The worker has already advanced its diff baseline to this frame. If the
++          // bytes cannot be delivered (the SSH stream went blocked while the render
++          // was in flight), the terminal never saw them — so force the next render to
++          // be a full keyframe, re-syncing the worker's baseline with the real screen.
++          // Without this, every later diff omits this frame's pixels until a resize.
++          if (bytes && !this.terminal.paintBytes(bytes)) this.forceFull = true;
++        })
+         .catch(() => { this.renderInFlight = false; this.forceFull = true; });
+       return;
+     }
+@@ -522,7 +535,7 @@ export class Session {
+     // still-pending ones on top of the authoritative state (our fighter only).
+     this.pending = this.pending.filter((p) => p.seq > ack);
+     if (m.phase === 'fight') for (const p of this.pending) predictLocal(m, this.role, p.input);
+-    this.match = m; // the next 30Hz tick renders this predicted+reconciled state
++    this.match = m; // the next scheduled render paints this predicted+reconciled state
+   }
+   endRemoteVersus(mid: string, result: MatchResult): void {
+     if (mid !== this.remoteMid) return;
+diff --git a/src/net/terminal.ts b/src/net/terminal.ts
+index c94868a..dc7797a 100644
+--- a/src/net/terminal.ts
++++ b/src/net/terminal.ts
+@@ -74,8 +74,13 @@ export class Terminal {
+   get graphicsSupported(): boolean { return this.caps.graphics; }
+   get blocked(): boolean { return this.outputBlocked; }
+ 
+-  write(s: string): void {
+-    if (!this.alive || this.outputBlocked) return;
++  /** Write to the stream. Returns whether the bytes were actually handed to the
++   *  stream (true even if that then set backpressure — they are still queued).
++   *  Returns false when the write was DROPPED: the terminal is dead or already
++   *  blocked, or the stream threw. Callers that keep a diff baseline must treat a
++   *  false return as "the terminal never saw this" and re-sync (full redraw). */
++  write(s: string): boolean {
++    if (!this.alive || this.outputBlocked) return false;
+     this.lastWriteAt = Date.now();
+     try {
+       if (!this.stream.write(s)) {
+@@ -84,21 +89,24 @@ export class Terminal {
+         this.outputBlocked = true;
+         this.stream.once('drain', () => { this.outputBlocked = false; });
+       }
+-    } catch { /* ignore */ }
++      return true;
++    } catch { return false; }
+   }
+ 
+   clear(): void { this.write(CLEAR_SCREEN); }
+ 
+   /** Wrap a paint in synchronized-output (mode 2026) so the terminal never shows a
+-   *  half-drawn frame. Only when caps are opted in (byte-identical to legacy when off). */
+-  private paint(out: string): void { if (out) this.write(CAPS_ENABLED ? SYNC_BEGIN + out + SYNC_END : out); }
++   *  half-drawn frame. Only when caps are opted in (byte-identical to legacy when off).
++   *  Returns whether the paint was delivered (an empty paint is a no-op success). */
++  private paint(out: string): boolean { return out ? this.write(CAPS_ENABLED ? SYNC_BEGIN + out + SYNC_END : out) : true; }
+ 
+   /** Octant/quadrant/half render (default). */
+-  paintOctant(f: Frame, cols: number, rows: number): void { this.paint(this.octant.render(f, cols, rows)); }
++  paintOctant(f: Frame, cols: number, rows: number): boolean { return this.paint(this.octant.render(f, cols, rows)); }
+   /** Kitty true-pixel graphics render (opt-in, non-fight screens). */
+-  paintGraphics(f: Frame, cols: number, rows: number): void { this.paint(this.kitty.render(f, cols, rows)); }
+-  /** Pre-rendered bytes (the render-worker-pool fast path). */
+-  paintBytes(bytes: string): void { this.paint(bytes); }
++  paintGraphics(f: Frame, cols: number, rows: number): boolean { return this.paint(this.kitty.render(f, cols, rows)); }
++  /** Pre-rendered bytes (the render-worker-pool fast path). Returns whether the
++   *  bytes reached the stream — false means the caller must force a keyframe. */
++  paintBytes(bytes: string): boolean { return this.paint(bytes); }
+ 
+   /** Force a full repaint next frame (screen change / resize / mode swap). */
+   forceRedraw(): void { this.octant.reset(); this.kitty.reset(); }
+diff --git a/src/render/render-pool.ts b/src/render/render-pool.ts
+index 2d0432e..09142b5 100644
+--- a/src/render/render-pool.ts
++++ b/src/render/render-pool.ts
+@@ -1,6 +1,8 @@
+ // Pool of render workers. Sessions are stuck to a worker for their lifetime so
+-// each worker keeps that session's cell buffers. A dead worker is respawned and
+-// its in-flight renders are failed (the session just drops that one frame).
++// each worker keeps that session's cell buffers. A dead OR wedged worker is
++// recycled and its in-flight renders are FAILED (rejected), so the owning session
++// drops that one frame and re-keyframes — it is never left awaiting a promise that
++// can never settle (which would wedge `renderInFlight` and freeze its fight).
+ import { Worker } from 'worker_threads';
+ import { availableParallelism } from 'os';
+ import type { Match } from '../game/types.js';
+@@ -8,10 +10,23 @@ import type { RenderMode } from './frame.js';
+ import type { KeyBindings } from '../input/bindings.js';
+ 
+ const WORKER_URL = new URL('./render-worker.ts', import.meta.url);
++// Liveness watchdog: a worker that has pending jobs but emits NO message for this
++// long is treated as wedged (its jobs are failed and it is respawned). This is a
++// gap-between-messages bound, NOT a per-job deadline — a worker chewing through a
++// deep backlog keeps emitting results, so it is never falsely recycled. A single
++// fight render is a few ms; this only fires on a genuinely stuck thread.
++const STALL_MS = Math.max(500, parseInt(process.env.SF_RENDER_STALL_MS ?? '2000', 10) || 2000);
++
++interface Job {
++  widx: number;                          // worker index this job was sent to
++  resolve: (bytes: string) => void;
++  reject: (err: Error) => void;
++}
+ 
+ export class RenderPool {
+   private workers: Worker[] = [];
+-  private pending = new Map<number, (bytes: string) => void>();
++  private pending = new Map<number, Job>();
++  private watchdog: (NodeJS.Timeout | null)[] = [];
+   private assign = new Map<number, number>();  // sid -> worker index
+   private seq = 0;
+   private rr = 0;
+@@ -22,14 +37,58 @@ export class RenderPool {
+ 
+   private spawn(i: number): void {
+     const w = new Worker(WORKER_URL);
++    this.workers[i] = w;
+     w.on('message', (m: { seq: number; bytes: string }) => {
+-      const resolve = this.pending.get(m.seq);
+-      if (resolve) { this.pending.delete(m.seq); resolve(m.bytes); }
++      const job = this.pending.get(m.seq);
++      if (job) { this.pending.delete(m.seq); job.resolve(m.bytes); }
++      this.progress(i);   // any message = proof of liveness → reset the watchdog
+     });
+-    const replace = () => { if (this.workers[i] === w) { try { w.terminate(); } catch { /* */ } this.spawn(i); } };
+-    w.on('error', replace);
+-    w.on('exit', (code) => { if (code !== 0) replace(); });
+-    this.workers[i] = w;
++    w.on('error', () => this.recycle(i, w, new Error('render worker error')));
++    w.on('exit', (code) => { if (code !== 0) this.recycle(i, w, new Error(`render worker exited (${code})`)); });
++  }
++
++  /** Tear down a dead/wedged worker at index `i`, fail everything it owed, respawn.
++   *  Identity-guarded so a doubled signal (error THEN exit, or watchdog THEN exit)
++   *  never recycles the healthy replacement. */
++  private recycle(i: number, w: Worker | undefined, err: Error): void {
++    if (!w || this.workers[i] !== w) return;
++    const t = this.watchdog[i]; if (t) clearTimeout(t); this.watchdog[i] = null;
++    try { w.terminate(); } catch { /* */ }
++    this.failJobsFor(i, err);
++    this.spawn(i);
++  }
++
++  /** Reject every in-flight job sent to a (now gone) worker index. The owning
++   *  session's .catch clears renderInFlight and forces a full redraw, so the fresh
++   *  worker rebuilds that session's baseline from scratch. */
++  private failJobsFor(widx: number, err: Error): void {
++    for (const [seq, job] of this.pending) {
++      if (job.widx !== widx) continue;
++      this.pending.delete(seq);
++      job.reject(err);
++    }
++  }
++
++  private hasPendingFor(widx: number): boolean {
++    for (const job of this.pending.values()) if (job.widx === widx) return true;
++    return false;
++  }
++
++  /** Ensure a watchdog is running for worker `widx` (does NOT extend a running one,
++   *  so a steady stream of new jobs can't mask a wedged worker). */
++  private arm(widx: number): void {
++    if (this.watchdog[widx] || !this.hasPendingFor(widx)) return;
++    const w = this.workers[widx];
++    const t = setTimeout(() => this.recycle(widx, w, new Error('render worker stalled')), STALL_MS);
++    if (typeof t.unref === 'function') t.unref();   // a watchdog must not hold the process open
++    this.watchdog[widx] = t;
++  }
++
++  /** A worker produced a message: reset its watchdog, then re-arm if work remains. */
++  private progress(widx: number): void {
++    const t = this.watchdog[widx]; if (t) clearTimeout(t);
++    this.watchdog[widx] = null;
++    this.arm(widx);
+   }
+ 
+   private workerFor(sid: number): { w: Worker; idx: number } {
+@@ -41,12 +100,16 @@ export class RenderPool {
+   /** Render one fight frame for a session; resolves with the diff bytes to write. */
+   render(sid: number, match: Match, cols: number, rows: number, mode: RenderMode, practice: boolean, bindings: KeyBindings, full: boolean): Promise<string> {
+     const seq = ++this.seq;
+-    const { w } = this.workerFor(sid);
++    const { w, idx } = this.workerFor(sid);
+     return new Promise<string>((resolve, reject) => {
+-      this.pending.set(seq, resolve);
++      this.pending.set(seq, { widx: idx, resolve, reject });
+       try {
+         w.postMessage({ type: 'render', sid, seq, match, cols, rows, mode, practice, bindings, full });
+-      } catch (e) { this.pending.delete(seq); reject(e as Error); }
++        this.arm(idx);
++      } catch (e) {
++        this.pending.delete(seq);
++        reject(e as Error);
++      }
+     });
+   }
+ 

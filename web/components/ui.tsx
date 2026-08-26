@@ -50,6 +50,7 @@ export function Footer() {
           <Link href="/fighters">Fighters</Link>
           <Link href="/graphics">Graphics</Link>
           <Link href="/bots">Build a bot</Link>
+          <Link href="/research">Research</Link>
           <Link href="/status">Server status</Link>
           <a href="https://github.com/thomasdavis/sshfighter.com" target="_blank" rel="noreferrer">GitHub</a>
           <span className="rs-footer__by">By <a href="https://twitter.com/ajaxdavis" target="_blank" rel="noreferrer">@ajaxdavis</a> · <a href="https://ajaxdavis.dev" target="_blank" rel="noreferrer">ajaxdavis.dev</a></span>
