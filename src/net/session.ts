@@ -284,8 +284,12 @@ export class Session {
         // No quitting a ranked match — you win or you lose. (Disconnecting still
         // forfeits.) 'q' is ignored here so an accidental press can't drop you.
         if (this.match && this.match.phase === 'fight') predictLocal(this.match, this.role, inp);
-        if (this.alive && !this.terminal.blocked) this.renderCurrent();
-        return; // rendered the predicted frame; skip the throttled render below
+        // Input send + local prediction run every tick (TICK_HZ) for zero round-trip
+        // latency, but the VISUAL refresh falls through to the shared adaptive
+        // scheduler below — the same 8-15 Hz cadence every other session uses.
+        // (Previously this branch rendered every tick = 30 Hz: double the intended
+        // rate for a normal terminal, and up to ~3.75x the adaptive tier on a large
+        // one. Prediction is unaffected — only how often we repaint changed.)
       } else if (this.practice) this.stepPractice();
       else if (this.isStepper && this.match && this.peer && this.peer.alive) {
         stepMatch(this.match, this.fightInput.snapshot(), this.peer.fightInput.snapshot());
@@ -356,7 +360,16 @@ export class Session {
       this.renderInFlight = true;
       const full = this.forceFull; this.forceFull = false;
       RENDER_POOL.render(this.sid, this.match, cols, rows, this.renderMode, this.practice, this.keyBindings, full)
-        .then((bytes) => { this.renderInFlight = false; if (this.alive && bytes) this.terminal.paintBytes(bytes); })
+        .then((bytes) => {
+          this.renderInFlight = false;
+          if (!this.alive) return;
+          // The worker has already advanced its diff baseline to this frame. If the
+          // bytes cannot be delivered (the SSH stream went blocked while the render
+          // was in flight), the terminal never saw them — so force the next render to
+          // be a full keyframe, re-syncing the worker's baseline with the real screen.
+          // Without this, every later diff omits this frame's pixels until a resize.
+          if (bytes && !this.terminal.paintBytes(bytes)) this.forceFull = true;
+        })
         .catch(() => { this.renderInFlight = false; this.forceFull = true; });
       return;
     }
@@ -522,7 +535,7 @@ export class Session {
     // still-pending ones on top of the authoritative state (our fighter only).
     this.pending = this.pending.filter((p) => p.seq > ack);
     if (m.phase === 'fight') for (const p of this.pending) predictLocal(m, this.role, p.input);
-    this.match = m; // the next 30Hz tick renders this predicted+reconciled state
+    this.match = m; // the next scheduled render paints this predicted+reconciled state
   }
   endRemoteVersus(mid: string, result: MatchResult): void {
     if (mid !== this.remoteMid) return;
