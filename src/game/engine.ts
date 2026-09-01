@@ -58,6 +58,7 @@ function attackTotal(k: AttackKind): number {
   if (k === 'stream') return STREAM.total;
   if (k === 'freetier') return FREETIER.total;
   if (k === 'bombardment') return BOMBARDMENT.total;
+  if (k === 'riposte') return RIPOSTE.total;
   if (k === 'punch' || k === 'kick') { const a = ATTACKS[k]; return a.startup + a.active + a.recovery; }
   return 0;
 }
@@ -83,7 +84,7 @@ export function attackActive(f: Fighter): boolean {
   if (f.attack === 'phase') return f.attackFrame >= PHASE.startup && f.attackFrame < PHASE.startup + PHASE.active;
   if (f.attack === 'blink') return f.attackFrame >= BLINK.startup && f.attackFrame < BLINK.startup + BLINK.active;
   if (f.attack === 'jumpkick') return f.attackFrame >= JUMPKICK.startup && f.attackFrame < JUMPKICK.startup + JUMPKICK.active;
-  return false; // construct / volley / boomerang have no melee hitbox — they spawn projectiles
+  return false; // construct / volley / boomerang spawn projectiles; riposte answers with counterActive()
 }
 
 /** Stable phase labels for agents and tooling. `active` describes move timing;
@@ -161,6 +162,13 @@ export const BOMBARDMENT = {
   jumpV: 8.0, vx: 2.8, projectileVx: 2.1, dropPerFrame: 2.8,
   dmg: 7, chip: 2, r: 8,
 };
+// RUBRIC — REBUTTAL: the roster's only MELEE COUNTER. Through its active window an
+// incoming melee blow is absorbed outright and returned as damage to whoever threw
+// it. It introduces no new entity or scheduling: the counter resolves inside the
+// existing hit resolution, on the frame the attack would have landed. Deliberately
+// narrow — it has no hitbox of its own, grants no invulnerability, never touches
+// projectiles (that is REFLECT), and a throw goes straight through it.
+export const RIPOSTE = { startup: 5, active: 13, recovery: 21, total: 39, dmg: 16, kb: 4.6, punishStun: 22 };
 const FIRE_SPEED = 3.4, FIRE_R = 11, FIGHTER_WORLD_H = 56, FIRE_DMG = 12, FIRE_CHIP = 3;
 const EARLY_UP_GRACE_Y = 26;
 
@@ -207,8 +215,16 @@ export function specialMoveStats(attack: SpecialAttack): SpecialMoveStats {
   if (attack === 'stream') { const active = (STREAM.count - 1) * STREAM.spawnEvery + 1; return { startup: STREAM.spawn, active, recovery: STREAM.total - STREAM.spawn - active, damagePerHit: MOTE.dmg, maxHits: STREAM.count, maxDamage: MOTE.dmg * STREAM.count, chipPerHit: MOTE.chip, range: STAGE_RIGHT - STAGE_LEFT, impact: 'Sequential projectile stream' }; }
   if (attack === 'freetier') return { startup: FREETIER.startup, active: FREETIER.active, recovery: FREETIER.recovery, damagePerHit: 0, maxHits: 0, maxDamage: 0, chipPerHit: 0, range: 0, impact: `Restores ${FREETIER.heal} health on completion` };
   if (attack === 'bombardment') return { startup: BOMBARDMENT.firstSpawn, active: BOMBARDMENT.secondSpawn - BOMBARDMENT.firstSpawn + 1, recovery: BOMBARDMENT.total - BOMBARDMENT.secondSpawn - 1, damagePerHit: BOMBARDMENT.dmg, maxHits: 2, maxDamage: BOMBARDMENT.dmg * 2, chipPerHit: BOMBARDMENT.chip, range: STAGE_RIGHT - STAGE_LEFT, impact: 'Two staggered fixed-diagonal projectiles' };
+  if (attack === 'riposte') return { startup: RIPOSTE.startup, active: RIPOSTE.active, recovery: RIPOSTE.recovery, damagePerHit: RIPOSTE.dmg, maxHits: 1, maxDamage: RIPOSTE.dmg, chipPerHit: 0, range: 0, impact: 'Melee counter; returns the absorbed blow' };
   const exhaustive: never = attack;
   throw new Error(`missing public move stats for ${String(exhaustive)}`);
+}
+
+/** True while REBUTTAL's counter window is open: a melee hit landing on this
+ *  fighter right now is absorbed and returned instead of connecting. Exported so
+ *  the bot wire view can publish the window rather than making agents infer it. */
+export function counterActive(f: Fighter): boolean {
+  return f.attack === 'riposte' && f.attackFrame >= RIPOSTE.startup && f.attackFrame < RIPOSTE.startup + RIPOSTE.active;
 }
 
 interface MeleeSpec { dmg: number; range: number; kb: number; chip: number; vert: number; omni?: boolean }
@@ -287,6 +303,7 @@ export function attackExtension(f: Fighter): number {
   if (f.attack === 'stream') return Math.min(1, f.attackFrame / STREAM.spawn);
   if (f.attack === 'freetier') return (Math.sin(f.attackFrame * 0.5) + 1) / 2;
   if (f.attack === 'bombardment') return Math.min(1, f.attackFrame / BOMBARDMENT.firstSpawn);
+  if (f.attack === 'riposte') return f.attackFrame < RIPOSTE.startup ? f.attackFrame / RIPOSTE.startup : 1;
   if (f.attack === 'jumpkick') return Math.min(1, f.attackFrame / JUMPKICK.startup);
   if (f.attack !== 'punch' && f.attack !== 'kick') return 1;
   const a = ATTACKS[f.attack];
@@ -372,6 +389,7 @@ function derivePose(f: Fighter): void {
   if (f.attack === 'stream') { f.pose = 'stream'; return; }
   if (f.attack === 'freetier') { f.pose = 'freetier'; return; }
   if (f.attack === 'bombardment') { f.pose = 'bombardment'; return; }
+  if (f.attack === 'riposte') { f.pose = 'riposte'; return; }
   if (f.attack === 'jumpkick') { f.pose = 'jumpkick'; return; }
   if (f.attack === 'punch') { f.pose = f.attackCrouch ? 'crouchpunch' : 'punch'; return; }
   if (f.attack === 'kick') { f.pose = f.attackCrouch ? 'crouchkick' : 'kick'; return; }
@@ -561,6 +579,8 @@ function startAttack(f: Fighter, kind: AttackKind, contextDescent = false): void
   if (kind === 'reflect') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; f.phaseT = REFLECT.startup + REFLECT.active; }
   // BLINK — a committal teleport-strike (grounded; the warp fires at BLINK.shift)
   if (kind === 'blink') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; }
+  // REBUTTAL — plant and read. No i-frames and no armor: the counter window is the only defense.
+  if (kind === 'riposte') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; }
   // jumpkick keeps the jump arc — no velocity change
 }
 
@@ -591,6 +611,19 @@ function resolveHit(att: Fighter, def: Fighter): HitFx | null {
   if (Math.abs(dx) > spec.range) return null;
   if (Math.abs(att.y - def.y) > spec.vert) return null;
   att.attackHit = true;
+
+  // RUBRIC — REBUTTAL absorbs the blow and returns it to its owner. Checked before
+  // guard/armor so a countered attack never also chips or flinches the examiner.
+  // Throws are exempt on purpose: the unblockable grab is the answer to a stance.
+  if (att.attack !== 'throw' && counterActive(def)) {
+    def.attackFrame = RIPOSTE.startup + RIPOSTE.active;   // window spent — one counter, then a long recovery
+    def.attackHit = true;
+    att.hp = Math.max(0, att.hp - RIPOSTE.dmg);
+    att.stun = RIPOSTE.punishStun;
+    att.attack = 'none'; att.attackFrame = 0; att.attackHit = false;
+    att.vx = -att.facing * RIPOSTE.kb;
+    return { x: (att.x + def.x) / 2, y: Math.max(att.y, def.y) + 18, heavy: true, blocked: false };
+  }
 
   if (att.attack === 'throw') {
     // UNBLOCKABLE grab: ignores guard, hurls a grounded target up and OVER to land

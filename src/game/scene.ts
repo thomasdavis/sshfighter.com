@@ -5,7 +5,7 @@
 // and sprites are downscaled from their high-res source to the on-screen size.
 import { createGrid, fillRect, blit, resizeGridH, rgb, type PixelGrid, type RGB } from '../render/pixel.js';
 import { drawFighter } from './sprites.js';
-import { WORLD_W, WORLD_H, GROUND_Y, STAGE_LEFT, STAGE_RIGHT, ENTROPY, TESTIMONY, THROW, CONTEXT, BRANCHWALK, MERGE_COMET, STORY_ARC, PLOT_TWIST, INK_TEMPEST, FREETIER, BOMBARDMENT, attackActive, attackExtension } from './engine.js';
+import { WORLD_W, WORLD_H, GROUND_Y, STAGE_LEFT, STAGE_RIGHT, ENTROPY, TESTIMONY, THROW, CONTEXT, BRANCHWALK, MERGE_COMET, STORY_ARC, PLOT_TWIST, INK_TEMPEST, FREETIER, BOMBARDMENT, RIPOSTE, attackActive, attackExtension } from './engine.js';
 import { SPRITES } from './sprite-set.js';
 import { PROJECTILES } from './projectile-set.js';
 import { STAGES } from './stage-set.js';
@@ -42,6 +42,7 @@ function frameName(f: Fighter): string {
     case 'plottwist': return `plottwist_${f.attackFrame < PLOT_TWIST.startup ? 1 : (f.attackFrame < PLOT_TWIST.startup + PLOT_TWIST.active ? 2 : 3)}`;
     case 'inktempest': return `inktempest_${f.attackFrame < INK_TEMPEST.startup ? 1 : (f.attackFrame < INK_TEMPEST.startup + INK_TEMPEST.active ? 2 : 3)}`;
     case 'bombardment': return `knowledgebomb_${f.attackFrame < BOMBARDMENT.secondSpawn ? 1 : 2}`;
+    case 'riposte': return `riposte_${f.attackFrame < RIPOSTE.startup + RIPOSTE.active ? 1 : (f.attackFrame < RIPOSTE.startup + RIPOSTE.active + 8 ? 2 : 3)}`;
     default: return f.pose;
   }
 }

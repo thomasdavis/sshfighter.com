@@ -38,6 +38,7 @@ const fighterFields = {
   invulnerabilityFrames: { type: 'integer', description: 'Intangibility frames remaining.' },
   armored: { type: 'boolean', description: 'Hits deal reduced damage without causing flinch.' },
   armorFrames: { type: 'integer', description: 'Super-armor frames remaining.' },
+  countering: { type: 'boolean', description: 'A melee counter window is open: a melee hit landing now is absorbed and returned as damage to its owner. Projectiles and throws are unaffected.' },
   thrownFrames: { type: 'integer', description: 'Throw tumble frames remaining.' },
   actionable: { type: 'boolean', description: 'Can begin a new move: alive, neutral, and not stunned/thrown.' },
   pose: { type: 'string', description: 'Current visual animation pose.' },

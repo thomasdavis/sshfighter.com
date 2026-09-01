@@ -79,6 +79,11 @@ export const HORIZON_PALETTE: FighterPalette = {
   skin: { r: 238, g: 232, b: 220 }, gi: { r: 64, g: 150, b: 230 }, giDark: { r: 28, g: 74, b: 140 },
   hair: { r: 220, g: 240, b: 250 }, belt: { r: 246, g: 186, b: 70 },
 };
+// RUBRIC — graphite examiner in paper-ivory with red-ink trim.
+export const VERDICT_PALETTE: FighterPalette = {
+  skin: { r: 206, g: 164, b: 128 }, gi: { r: 52, g: 58, b: 82 }, giDark: { r: 20, g: 23, b: 36 },
+  hair: { r: 238, g: 234, b: 222 }, belt: { r: 214, g: 52, b: 62 },
+};
 // MEGAWATTS — ultraviolet grid scholar with hot-gold capacitor trim.
 export const GRID_PALETTE: FighterPalette = {
   skin: { r: 142, g: 92, b: 72 }, gi: { r: 112, g: 54, b: 214 }, giDark: { r: 22, g: 20, b: 34 },

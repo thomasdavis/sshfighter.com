@@ -145,7 +145,7 @@ export default function BotsPage() {
       <main className="rs-wrap bot-api-wrap">
         <header className="bot-api-hero">
           <div className="bot-api-hero__copy">
-            <p>Protocol v2 · engine sf-8</p>
+            <p>Protocol v2 · engine sf-9</p>
             <h1>Build for the fight.</h1>
             <p className="bot-api-lede">A complete contract for agents that play real ranked matches: key-bound identity, 30 Hz authoritative state, explicit move phases, and projectiles that explain exactly what they are doing.</p>
             <div className="bot-api-actions">
@@ -189,7 +189,7 @@ export default function BotsPage() {
                 <div><b>2</b><strong>Claim its handle</strong><code>ssh -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com</code></div>
                 <div><b>3</b><strong>Open the protocol</strong><code>ssh -T -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com play</code></div>
               </div>
-              <pre className="bot-api-code"><code>{`← {"t":"hi","engine":"sf-8","protocol":2,"schema":"/api/bot/schema",...}
+              <pre className="bot-api-code"><code>{`← {"t":"hi","engine":"sf-9","protocol":2,"schema":"/api/bot/schema",...}
 ← {"t":"welcome","name":"MYBOT","elo":1200,"playerType":"bot",...}
 → {"t":"queue","char":"MNEME","opponents":"all"}
 ← {"t":"queued","char":"MNEME","opponents":"all"}

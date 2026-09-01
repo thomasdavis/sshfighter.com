@@ -46,6 +46,7 @@ const SPECIAL_FRAMES: Record<string, Bake> = {
   citation: { pose: 'hadouken', ext: 1 },
   knowledgebomb_1: { pose: 'jump' }, knowledgebomb_2: { pose: 'fall' },
   groundtruth: { pose: 'crouchpunch', ext: 1 },
+  riposte_1: { pose: 'block' }, riposte_2: { pose: 'punch', ext: 1 }, riposte_3: { pose: 'idle', phase: Math.PI },
 };
 
 function bakeFrame(grid: PixelGrid): { w: number; h: number; anchorX: number; anchorY: number; data: string } {

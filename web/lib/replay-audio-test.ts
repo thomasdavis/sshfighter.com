@@ -48,7 +48,7 @@ check('studio source library is present and non-empty', studioAssets.every((url)
 check('stage profiles use recorded score masters and physical surfaces', stages.every((stage) => /\.(mp3|ogg)$/.test(stageAudioProfile(stage).music) && !!stageAudioProfile(stage).surface));
 check('the professional announcer lines ship with every stage mix', studioAssets.filter((url) => url.includes('/announcer/')).length === 7);
 
-const fighters = ['BYU', 'MEN', 'BLANKO', 'CHONG', 'GYLE', 'ZANG', 'DHAL', 'HONDO', 'KIRA', 'MAKO', 'OMEGA', 'CODEX', 'FABLE', 'MNEME', 'AJAX', 'XENON', 'MEGAWATTS', 'UNCLOSE'];
+const fighters = ['BYU', 'MEN', 'BLANKO', 'CHONG', 'GYLE', 'ZANG', 'DHAL', 'HONDO', 'KIRA', 'MAKO', 'OMEGA', 'CODEX', 'FABLE', 'MNEME', 'AJAX', 'XENON', 'MEGAWATTS', 'RUBRIC', 'UNCLOSE'];
 const signatures = fighters.map((fighter) => characterAudioProfile(fighter));
 check('every fighter has a unique sonic identity', signatures.every((profile) => profile.signature !== 'Unknown contender') && new Set(signatures.map((profile) => profile.signature)).size === fighters.length, `fighters=${fighters.length}`);
 check('heavy and phase fighters occupy different physical palettes', characterAudioProfile('ZANG').weight > .9 && characterAudioProfile('XENON').material === 'phase');

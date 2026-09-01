@@ -16,7 +16,7 @@ const COMMON = [
 ] as const;
 
 const errors: string[] = [];
-if (ROSTER.length !== 18) errors.push(`expected 18 roster fighters, found ${ROSTER.length}`);
+if (ROSTER.length !== 19) errors.push(`expected 19 roster fighters, found ${ROSTER.length}`);
 
 for (const fighter of ROSTER) {
   const moves = specialMovesFor(fighter.name);
