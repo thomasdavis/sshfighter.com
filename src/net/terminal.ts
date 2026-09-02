@@ -74,8 +74,13 @@ export class Terminal {
   get graphicsSupported(): boolean { return this.caps.graphics; }
   get blocked(): boolean { return this.outputBlocked; }
 
-  write(s: string): void {
-    if (!this.alive || this.outputBlocked) return;
+  /** Write to the stream. Returns whether the bytes were actually handed to the
+   *  stream (true even if that then set backpressure — they are still queued).
+   *  Returns false when the write was DROPPED: the terminal is dead or already
+   *  blocked, or the stream threw. Callers that keep a diff baseline must treat a
+   *  false return as "the terminal never saw this" and re-sync (full redraw). */
+  write(s: string): boolean {
+    if (!this.alive || this.outputBlocked) return false;
     this.lastWriteAt = Date.now();
     try {
       if (!this.stream.write(s)) {
@@ -84,21 +89,24 @@ export class Terminal {
         this.outputBlocked = true;
         this.stream.once('drain', () => { this.outputBlocked = false; });
       }
-    } catch { /* ignore */ }
+      return true;
+    } catch { return false; }
   }
 
   clear(): void { this.write(CLEAR_SCREEN); }
 
   /** Wrap a paint in synchronized-output (mode 2026) so the terminal never shows a
-   *  half-drawn frame. Only when caps are opted in (byte-identical to legacy when off). */
-  private paint(out: string): void { if (out) this.write(CAPS_ENABLED ? SYNC_BEGIN + out + SYNC_END : out); }
+   *  half-drawn frame. Only when caps are opted in (byte-identical to legacy when off).
+   *  Returns whether the paint was delivered (an empty paint is a no-op success). */
+  private paint(out: string): boolean { return out ? this.write(CAPS_ENABLED ? SYNC_BEGIN + out + SYNC_END : out) : true; }
 
   /** Octant/quadrant/half render (default). */
-  paintOctant(f: Frame, cols: number, rows: number): void { this.paint(this.octant.render(f, cols, rows)); }
+  paintOctant(f: Frame, cols: number, rows: number): boolean { return this.paint(this.octant.render(f, cols, rows)); }
   /** Kitty true-pixel graphics render (opt-in, non-fight screens). */
-  paintGraphics(f: Frame, cols: number, rows: number): void { this.paint(this.kitty.render(f, cols, rows)); }
-  /** Pre-rendered bytes (the render-worker-pool fast path). */
-  paintBytes(bytes: string): void { this.paint(bytes); }
+  paintGraphics(f: Frame, cols: number, rows: number): boolean { return this.paint(this.kitty.render(f, cols, rows)); }
+  /** Pre-rendered bytes (the render-worker-pool fast path). Returns whether the
+   *  bytes reached the stream — false means the caller must force a keyframe. */
+  paintBytes(bytes: string): boolean { return this.paint(bytes); }
 
   /** Force a full repaint next frame (screen change / resize / mode swap). */
   forceRedraw(): void { this.octant.reset(); this.kitty.reset(); }
