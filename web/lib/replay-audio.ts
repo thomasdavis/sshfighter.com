@@ -58,6 +58,7 @@ const CHARACTER_PROFILES: Record<string, Omit<CharacterAudioProfile, 'id'>> = {
   AJAX: { signature: 'Returning steel', weight: .68, pitch: .985, presence: 2900, space: .3, material: 'iron' },
   XENON: { signature: 'Phase afterimage', weight: .36, pitch: 1.06, presence: 4500, space: .72, material: 'phase' },
   MEGAWATTS: { signature: 'Open-circuit storm', weight: .72, pitch: .975, presence: 3300, space: .5, material: 'electric' },
+  RUBRIC: { signature: 'Red-ink verdict', weight: .47, pitch: 1.01, presence: 2050, space: .34, material: 'ink' },
   UNCLOSE: { signature: 'Token fracture', weight: .46, pitch: 1.025, presence: 3600, space: .55, material: 'signal' },
 };
 
@@ -228,7 +229,7 @@ const STUDIO_ASSETS = {
 
 const MULTI_TAKE_ASSETS = new Set<string>([STUDIO_ASSETS.face, STUDIO_ASSETS.kick, STUDIO_ASSETS.bag, STUDIO_ASSETS.air]);
 
-type SpecialFamily = 'rise' | 'projectile' | 'spin' | 'charge' | 'storm' | 'phase' | 'gravity' | 'weapon' | 'armor' | 'construct' | 'barrage' | 'channel';
+type SpecialFamily = 'rise' | 'projectile' | 'spin' | 'charge' | 'storm' | 'phase' | 'gravity' | 'weapon' | 'armor' | 'construct' | 'barrage' | 'channel' | 'counter';
 
 export interface SpecialAudioTreatment {
   fighter: string;
@@ -289,6 +290,9 @@ const SPECIAL_TREATMENTS: Record<string, { source: string; family: SpecialFamily
   'MEGAWATTS:hadouken': { source: special('sfx_07a.ogg'), family: 'projectile' },
   'MEGAWATTS:bombardment': { source: special('sfx_13b.ogg'), family: 'barrage' },
   'MEGAWATTS:electric': { source: special('sfx_22a.ogg'), family: 'storm' },
+  'RUBRIC:hadouken': { source: special('sfx_19a.ogg'), family: 'projectile' },
+  'RUBRIC:electric': { source: special('sfx_19b.ogg'), family: 'storm' },
+  'RUBRIC:riposte': { source: special('sfx_19c.ogg'), family: 'counter' },
   'UNCLOSE:stream': { source: special('sfx_07b.ogg'), family: 'projectile' },
   'UNCLOSE:electric': { source: special('sfx_13c.ogg'), family: 'storm' },
   'UNCLOSE:freetier': { source: special('sfx_22b.ogg'), family: 'channel' },
@@ -719,6 +723,7 @@ export class ReplaySoundscape {
       construct: { gain: .18, lowpass: 9200, highpass: 80, reverb: .55, layer: 'metal' },
       barrage: { gain: .18, lowpass: 9800, highpass: 60, reverb: .46, layer: 'energy' },
       channel: { gain: .16, lowpass: 8800, highpass: 100, reverb: .72, layer: 'phase' },
+      counter: { gain: .19, lowpass: 12600, highpass: 150, reverb: .28, layer: 'blade' },
     };
     const recipe = recipes[treatment.family];
     this.sample(treatment.source, { gain: recipe.gain, when, pan, profile: fighter, lowpass: recipe.lowpass, highpass: recipe.highpass, reverb: recipe.reverb });

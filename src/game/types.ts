@@ -8,14 +8,14 @@ export type Pose = 'idle' | 'walk' | 'crouch' | 'jump' | 'fall' | 'punch' | 'kic
   | 'context' | 'branchwalk' | 'mergecomet'
   | 'storyarc' | 'plottwist' | 'inktempest'
   | 'construct' | 'nova' | 'volley' | 'boomerang' | 'armor' | 'phase' | 'lasso' | 'reflect' | 'blink' | 'jumpkick'
-  | 'stream' | 'freetier' | 'bombardment';
+  | 'stream' | 'freetier' | 'bombardment' | 'riposte';
 export type AttackKind = 'none' | 'punch' | 'kick' | 'throw' | 'hadouken' | 'shoryuken' | 'hurricane'
   | 'electric' | 'rolling' | 'verticalroll'
   | 'testimony' | 'nullstep' | 'entropy'
   | 'context' | 'branchwalk' | 'mergecomet'
   | 'storyarc' | 'plottwist' | 'inktempest'
   | 'construct' | 'nova' | 'volley' | 'boomerang' | 'armor' | 'phase' | 'lasso' | 'reflect' | 'blink' | 'jumpkick'
-  | 'stream' | 'freetier' | 'bombardment';
+  | 'stream' | 'freetier' | 'bombardment' | 'riposte';
 
 export interface FighterPalette {
   skin: RGB; gi: RGB; giDark: RGB; hair: RGB; belt: RGB;

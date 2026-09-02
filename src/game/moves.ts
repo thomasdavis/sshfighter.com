@@ -117,6 +117,13 @@ const MOVE_SETS: Readonly<Record<string, readonly SpecialMoveDefinition[]>> = {
     { attack: 'electric', name: 'WAVEFORM', shortName: 'WAVEFORM', description: 'A close-range burst of synthesized voice: concentric sound rings that strike repeatedly and shove a crowding rival back off the gate. Your get-off-me answer to point-blank pressure.', motion: ['D', 'B'], button: 'punch', effect: 'wind' },
     { attack: 'freetier', name: 'FREE TIER', shortName: 'FREE TIER', description: 'Open the gate and breathe: a LONG, fully punishable channel that restores some health only if it completes. Free for you — expensive for them if they stand back and let you finish.', motion: ['D', 'B'], button: 'kick' },
   ],
+  // RUBRIC — the grading harness. Cheap question, close correction, and the
+  // roster's only melee counter.
+  RUBRIC: [
+    { attack: 'hadouken', name: 'CITATION CHECK', shortName: 'CITATION', description: 'Send a marked citation down the middle lane. It obeys the ordinary projectile rules and exists to make an impatient rival commit to something Rubric can grade.', motion: ['D', 'F'], button: 'punch', projectile: 'citation' },
+    { attack: 'electric', name: 'MARGIN NOTES', shortName: 'MARGIN', description: 'Plant and sustain a close flurry of red-ink corrections that clips a crowding opponent several times. It grants no armor, so a throw goes straight through it.', motion: ['D', 'B'], button: 'punch' },
+    { attack: 'riposte', name: 'REBUTTAL', shortName: 'REBUTTAL', description: 'Take a reading stance. Any MELEE blow that lands inside the window is absorbed outright and returned as damage to whoever threw it. Projectiles pass straight through, throws beat it, and a whiff leaves Rubric wide open.', motion: ['D', 'B'], button: 'kick' },
+  ],
 };
 
 /** Every special AttackKind any roster fighter can perform — the single source of
@@ -160,6 +167,7 @@ export function specialMoveFrames(attack: SpecialAttack): readonly string[] {
   if (attack === 'blink') return ['blink'];
   if (attack === 'stream') return ['stream'];
   if (attack === 'freetier') return ['freetier'];
+  if (attack === 'riposte') return ['riposte_1', 'riposte_2', 'riposte_3'];
   if (attack === 'bombardment') return ['knowledgebomb_1', 'knowledgebomb_2'];
   return ['mergecomet_1', 'mergecomet_2', 'mergecomet_3'];
 }

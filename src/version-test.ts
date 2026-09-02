@@ -70,7 +70,7 @@ try {
     && definitions?.projectile?.properties?.sourceAttack
     && definitions?.projectile?.properties?.vy);
   check('bot schema derives every roster fighter and move from engine truth',
-    attacks?.characters?.length === 18
+    attacks?.characters?.length === 19
     && attacks.characters.find((character: Record<string, any>) => character.name === 'MNEME')
       ?.specials.find((move: Record<string, any>) => move.id === 'construct')?.timingAndImpact?.impact.includes('turret'));
 } finally {

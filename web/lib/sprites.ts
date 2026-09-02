@@ -10,6 +10,7 @@ export const POSE_ORDER = [
   'nullstep_1', 'nullstep_2', 'nullstep_3', 'nullstep_4',
   'entropy_1', 'entropy_2', 'entropy_3',
   'knowledgebomb_1', 'knowledgebomb_2',
+  'riposte_1', 'riposte_2', 'riposte_3',
 ];
 
 export function listChars(): string[] {

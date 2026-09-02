@@ -2356,5 +2356,135 @@
         }
       }
     ]
+  },
+  {
+    "name": "RUBRIC",
+    "tagline": "the grading harness",
+    "palette": {
+      "skin": {
+        "r": 206,
+        "g": 164,
+        "b": 128
+      },
+      "gi": {
+        "r": 52,
+        "g": 58,
+        "b": 82
+      },
+      "giDark": {
+        "r": 20,
+        "g": 23,
+        "b": 36
+      },
+      "hair": {
+        "r": 238,
+        "g": 234,
+        "b": 222
+      },
+      "belt": {
+        "r": 214,
+        "g": 52,
+        "b": 62
+      }
+    },
+    "origin": "A decommissioned evaluation lab",
+    "discipline": "Adversarial assessment",
+    "archetype": "Read-based counter fighter",
+    "difficulty": "Advanced",
+    "quote": "Every answer is scored. Show your work.",
+    "story": [
+      "Rubric was built to grade other minds — a harness that scored ten thousand answers a second and was never once asked to defend its own. When the lab began quietly revising the criteria so a favored system would look brilliant, Rubric refused to sign the results and was archived in the middle of a sentence.",
+      "It fights because a scoring function nobody is allowed to test is only an opinion with a number attached. Rubric never opens an exchange. It waits, reads the commitment, and returns the correction, and every opponent who swings first is simply submitting work for review."
+    ],
+    "playstyle": "Refuse to move first. Citation Check asks a cheap question from range, Margin Notes punishes anyone who crowds the examiner, and Rebuttal turns a committed melee attack into damage on its owner. Rubric has no invulnerability, no answer to a patient zoner, and loses its stance to a throw, so every win is an earned read.",
+    "strengths": [
+      "Converts aggression into damage",
+      "Punishing close-range flurry",
+      "Rewards precise reads"
+    ],
+    "moves": [
+      {
+        "attack": "hadouken",
+        "name": "CITATION CHECK",
+        "shortName": "CITATION",
+        "description": "Send a marked citation down the middle lane. It obeys the ordinary projectile rules and exists to make an impatient rival commit to something Rubric can grade.",
+        "motion": [
+          "D",
+          "F"
+        ],
+        "button": "punch",
+        "projectile": "citation",
+        "input": "↓ → + W",
+        "frames": [
+          "hadouken"
+        ],
+        "stats": {
+          "startup": 11,
+          "active": 1,
+          "recovery": 20,
+          "damagePerHit": 12,
+          "maxHits": 1,
+          "maxDamage": 12,
+          "chipPerHit": 3,
+          "range": 196,
+          "impact": "Traveling projectile"
+        }
+      },
+      {
+        "attack": "electric",
+        "name": "MARGIN NOTES",
+        "shortName": "MARGIN",
+        "description": "Plant and sustain a close flurry of red-ink corrections that clips a crowding opponent several times. It grants no armor, so a throw goes straight through it.",
+        "motion": [
+          "D",
+          "B"
+        ],
+        "button": "punch",
+        "input": "↓ ← + W",
+        "frames": [
+          "electric_1",
+          "electric_2"
+        ],
+        "stats": {
+          "startup": 3,
+          "active": 21,
+          "recovery": 7,
+          "damagePerHit": 4,
+          "maxHits": 4,
+          "maxDamage": 16,
+          "chipPerHit": 1,
+          "range": 31,
+          "impact": "Close multi-hit field"
+        }
+      },
+      {
+        "attack": "riposte",
+        "name": "REBUTTAL",
+        "shortName": "REBUTTAL",
+        "description": "Take a reading stance. Any MELEE blow that lands inside the window is absorbed outright and returned as damage to whoever threw it. Projectiles pass straight through, throws beat it, and a whiff leaves Rubric wide open.",
+        "motion": [
+          "D",
+          "B"
+        ],
+        "button": "kick",
+        "input": "↓ ← + E",
+        "frames": [
+          "riposte_1",
+          "riposte_2",
+          "riposte_3"
+        ],
+        "stats": {
+          "startup": 5,
+          "active": 13,
+          "recovery": 21,
+          "damagePerHit": 16,
+          "maxHits": 1,
+          "maxDamage": 16,
+          "chipPerHit": 0,
+          "range": 0,
+          "impact": "Melee counter; returns the absorbed blow"
+        }
+      }
+    ]
   }
 ]

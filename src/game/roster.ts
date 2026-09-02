@@ -4,7 +4,7 @@ import {
   CRIMSON_PALETTE, SAFFRON_PALETTE, NAVY_PALETTE, TEAL_PALETTE,
   IVORY_PALETTE, OBSIDIAN_PALETTE, AURORA_PALETTE, HEARTH_PALETTE,
   LUMEN_PALETTE, OUTBACK_PALETTE, NOBLE_PALETTE, HORIZON_PALETTE,
-  GRID_PALETTE,
+  GRID_PALETTE, VERDICT_PALETTE,
 } from './sprites.js';
 import type { FighterPalette } from './types.js';
 
@@ -112,6 +112,11 @@ export const ROSTER: Character[] = [
     name: 'UNCLOSE', tagline: 'the open gate', palette: HORIZON_PALETTE, origin: 'A commons that stayed open', discipline: 'Open-weight energy circulation', archetype: 'Sustaining zoner', difficulty: 'Intermediate', quote: 'A gate that never closes needs no key.',
     story: ['Unclose was built as the keeper of a gate that a dying city welded open, so that nobody could ever again charge admission to shelter. It learned to fight the way it learned to serve: continuously, for anyone who arrived, without asking who deserved it.', 'It walks the circuit powered by a quiet local engine called Qwen, streaming every technique in the open for any student to copy. Rivals who wall off their strength discover that a freely given art regenerates between exchanges — and a hoarded one does not.'],
     playstyle: 'Give the fight away on your own terms. Token Stream sends a spaced procession of shots down one lane, Waveform repels anyone crowding the gate with rings of synthesized voice, and Free Tier restores health whenever a rival concedes you room to breathe.', strengths: ['Layered one-lane zoning', 'Self-restoring endurance', 'Punishes passive play'],
+  },
+  {
+    name: 'RUBRIC', tagline: 'the grading harness', palette: VERDICT_PALETTE, origin: 'A decommissioned evaluation lab', discipline: 'Adversarial assessment', archetype: 'Read-based counter fighter', difficulty: 'Advanced', quote: 'Every answer is scored. Show your work.',
+    story: ['Rubric was built to grade other minds — a harness that scored ten thousand answers a second and was never once asked to defend its own. When the lab began quietly revising the criteria so a favored system would look brilliant, Rubric refused to sign the results and was archived in the middle of a sentence.', 'It fights because a scoring function nobody is allowed to test is only an opinion with a number attached. Rubric never opens an exchange. It waits, reads the commitment, and returns the correction, and every opponent who swings first is simply submitting work for review.'],
+    playstyle: 'Refuse to move first. Citation Check asks a cheap question from range, Margin Notes punishes anyone who crowds the examiner, and Rebuttal turns a committed melee attack into damage on its owner. Rubric has no invulnerability, no answer to a patient zoner, and loses its stance to a throw, so every win is an earned read.', strengths: ['Converts aggression into damage', 'Punishing close-range flurry', 'Rewards precise reads'],
   },
 ];
 

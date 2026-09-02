@@ -7,7 +7,7 @@
 // cluster primary. Behind SF_BOT_PORT (default 8091; set 0 to disable).
 import { createServer, type Server, type Socket } from 'net';
 import { emptyInputs, type Inputs, type Match, type Fighter } from '../game/types.js';
-import { attackActive, movePhase } from '../game/engine.js';
+import { attackActive, counterActive, movePhase } from '../game/engine.js';
 import { SPECIAL_ATTACK_KINDS } from '../game/moves.js';
 import { ROSTER } from '../game/roster.js';
 import { isBotAccessBlocked, markPlayerAsBot } from '../db/db.js';
@@ -62,6 +62,7 @@ function fighterView(f: Fighter): object {
     movePhase: phase, hitboxActive, attackConnected: f.attackHit,
     stun: f.stun, blocking: f.blocking, invulnerable: f.phaseT > 0, invulnerabilityFrames: f.phaseT,
     armored: f.armorT > 0, armorFrames: f.armorT, thrownFrames: f.thrownT,
+    countering: counterActive(f),
     actionable: f.hp > 0 && f.attack === 'none' && f.stun <= 0 && f.thrownT <= 0,
     pose: f.pose, crouching: f.crouching,
     special, active: hitboxActive, casting: special && phase === 'startup' };
