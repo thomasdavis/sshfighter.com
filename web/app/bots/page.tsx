@@ -71,12 +71,12 @@ const projectileFields: SpecRow[] = [
   ['x / y', 'number', 'World position; y uses height above ground.'],
   ['vx / vy', 'number', 'Per-frame velocity. Knowledge bombs expose a negative vy; straight shots and turrets use 0.'],
   ['age / ttl', 'integer / integer|null', 'Frames since spawn and, when timer-limited, frames remaining. Null means bounds, contact, or catch controls removal.'],
-  ['style', 'enum', <><code>blue</code>, <code>fire</code>, <code>sonic</code>, <code>citation</code>, <code>knowledge</code>, <code>mote</code>, <code>boomerang</code>, <code>rope</code>, or <code>construct</code>.</>],
-  ['sourceAttack', 'enum', <><code>hadouken</code>, <code>bombardment</code>, <code>boomerang</code>, <code>lasso</code>, <code>construct</code>, <code>stream</code>, or <code>volley</code>.</>],
+  ['style', 'enum', <><code>blue</code>, <code>fire</code>, <code>sonic</code>, <code>citation</code>, <code>knowledge</code>, <code>mote</code>, <code>boomerang</code>, <code>rope</code>, <code>construct</code>, <code>ideaegg</code>, or <code>gnat</code>.</>],
+  ['sourceAttack', 'enum', <><code>hadouken</code>, <code>bombardment</code>, <code>boomerang</code>, <code>lasso</code>, <code>construct</code>, <code>stream</code>, <code>volley</code>, or <code>ideahatch</code>.</>],
   ['parentId', 'integer|null', 'The turret ID for a construct-fired mote; null for independent projectiles.'],
-  ['state', 'enum', <><code>traveling</code>, <code>outbound</code>, <code>returning</code>, or <code>turret</code>.</>],
-  ['nextFireIn', 'integer|null', 'Frames until a construct turret emits its next mote; null for everything else.'],
-  ['reflectable / dangerous', 'boolean', 'Ropes and turret bodies cannot reflect. A turret body is not damaging, but its child motes are.'],
+  ['state', 'enum', <><code>traveling</code>, <code>outbound</code>, <code>returning</code>, <code>turret</code>, or <code>incubating</code>.</>],
+  ['nextFireIn', 'integer|null', 'Frames until a construct fires or an Idea Hatch egg opens; null for everything else.'],
+  ['reflectable / dangerous', 'boolean', 'Ropes, turret bodies, and incubating eggs cannot reflect. Turret bodies and eggs are harmless; their spawned projectiles are dangerous.'],
   ['canHit', 'boolean', 'Can damage on this frame. A boomerang that connected outbound becomes false until it reverses.'],
 ];
 

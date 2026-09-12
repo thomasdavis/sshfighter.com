@@ -78,10 +78,10 @@ export function botStateFor(role: 'a' | 'b', m: Match, ack: number): Record<stri
       vx: Math.round(p.vx * 100) / 100, vy: Math.round(p.vy * 100) / 100,
       age: p.frame, ttl: p.life ?? null, style: p.style, sourceAttack: p.sourceAttack,
       parentId: p.parentId ?? null,
-      state: p.style === 'construct' ? 'turret' : p.style === 'boomerang' ? (p.returning ? 'returning' : 'outbound') : 'traveling',
-      nextFireIn: p.style === 'construct' && (p.life ?? 0) > 6 ? (p.fireT ?? null) : null,
-      reflectable: p.style !== 'rope' && p.style !== 'construct',
-      dangerous: p.style !== 'construct', canHit: p.style !== 'construct' && !p.hit,
+      state: p.style === 'construct' ? 'turret' : p.style === 'ideaegg' ? 'incubating' : p.style === 'boomerang' ? (p.returning ? 'returning' : 'outbound') : 'traveling',
+      nextFireIn: (p.style === 'construct' && (p.life ?? 0) > 6) || p.style === 'ideaegg' ? (p.fireT ?? null) : null,
+      reflectable: p.style !== 'rope' && p.style !== 'construct' && p.style !== 'ideaegg',
+      dangerous: p.style !== 'construct' && p.style !== 'ideaegg', canHit: p.style !== 'construct' && p.style !== 'ideaegg' && !p.hit,
     })) };
 }
 

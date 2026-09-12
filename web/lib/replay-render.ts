@@ -34,7 +34,7 @@ export const stageUrl = (stage: string) => `/api/stage/${encodeURIComponent(stag
 const PROJECTILE_STYLES = ['blue', 'fire', 'sonic', 'citation', 'knowledge', 'mote', 'construct', 'rope', 'boomerang'] as const;
 const PROJECTILE_ART_VERSION = 1;
 const projectileUrl = (style: string) => `/api/projectile/${encodeURIComponent(style)}?v=${PROJECTILE_ART_VERSION}`;
-const projColor = (s: string) => (s === 'fire' ? '#ff7a3c' : s === 'sonic' ? '#8fe0ff' : s === 'mote' ? '#c49bff' : s === 'boomerang' ? '#e0a84a' : s === 'rope' ? '#c48a4a' : s === 'citation' ? '#ffc436' : s === 'knowledge' ? '#8e42f5' : '#6fa8ff');
+const projColor = (s: string) => (s === 'fire' ? '#ff7a3c' : s === 'sonic' ? '#8fe0ff' : s === 'mote' ? '#c49bff' : s === 'gnat' ? '#f67070' : s === 'boomerang' ? '#e0a84a' : s === 'rope' ? '#c48a4a' : s === 'citation' ? '#ffc436' : s === 'knowledge' ? '#8e42f5' : '#6fa8ff');
 const imgOk = (i?: HTMLImageElement | null) => !!i && i.complete && i.naturalWidth > 0;
 
 /** Ensure an Image is loading for every sprite frame both characters can use. */
@@ -112,6 +112,24 @@ function drawEvidence(ctx: CanvasRenderingContext2D, meta: RenderMeta, st: Quad,
   ctx.restore();
 }
 
+function drawFlybrainTech(ctx: CanvasRenderingContext2D, meta: RenderMeta, st: Quad, other: Quad, attack: string, active: boolean, t: number, ws: number, ox: number, oy: number) {
+  const x = ox + st[0] * ws, headY = oy + (meta.groundY - st[1] - 45) * ws;
+  if (attack === 'backmind') {
+    ctx.save(); ctx.strokeStyle = '#42e8f0'; ctx.lineWidth = Math.max(1, ws); ctx.globalAlpha = 0.7;
+    for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(x - st[2] * (7 + i * 5) * ws, headY + i * 5 * ws, (2 + i) * ws, 0, 7); ctx.stroke(); }
+    ctx.restore();
+    return;
+  }
+  if (attack !== 'braindrain' || !active) return;
+  const x0 = ox + (st[0] + st[2] * 17) * ws, y0 = oy + (meta.groundY - st[1] - 31) * ws;
+  const x1 = ox + other[0] * ws, y1 = oy + (meta.groundY - other[1] - 29) * ws;
+  const dx = x1 - x0, dy = y1 - y0, distance = Math.max(1, Math.hypot(dx, dy));
+  const length = Math.min(distance, 82 * ws), steps = 22;
+  ctx.save(); ctx.lineWidth = Math.max(1.5, 1.3 * ws); ctx.strokeStyle = '#42e8f0'; ctx.beginPath(); ctx.moveTo(x0, y0);
+  for (let i = 1; i <= steps; i++) { const p = i / steps, wave = Math.sin(p * Math.PI * 7 + t * 0.15) * 2.2 * ws; ctx.lineTo(x0 + dx / distance * length * p, y0 + dy / distance * length * p + wave); }
+  ctx.stroke(); ctx.strokeStyle = '#f67070'; ctx.setLineDash([3 * ws, 4 * ws]); ctx.stroke(); ctx.restore();
+}
+
 function drawHud(ctx: CanvasRenderingContext2D, meta: RenderMeta, f: Frame) {
   const pad = 26, barH = 15, barY = 20, half = CW / 2 - pad - 34;
   const bar = (x: number, hp: number, right: boolean) => {
@@ -154,6 +172,8 @@ export function drawFrame(ctx: CanvasRenderingContext2D, meta: RenderMeta, f: Fr
   if (f.ba === 'mergecomet') drawEvidence(ctx, meta, f.b, f.bAct, t, ws, ox, oy);
   drawFighter(ctx, meta, 'a', f, imgs, ws, ox, oy);
   drawFighter(ctx, meta, 'b', f, imgs, ws, ox, oy);
+  drawFlybrainTech(ctx, meta, f.a, f.b, f.aa, f.aAct, t, ws, ox, oy);
+  drawFlybrainTech(ctx, meta, f.b, f.a, f.ba, f.bAct, t, ws, ox, oy);
   if (f.aa === 'testimony' && f.aAct) drawBeam(ctx, meta, f.a, ws, ox, oy);
   if (f.ba === 'testimony' && f.bAct) drawBeam(ctx, meta, f.b, ws, ox, oy);
   for (const [px, py, owner, style] of f.pr) {
@@ -187,6 +207,20 @@ export function drawFrame(ctx: CanvasRenderingContext2D, meta: RenderMeta, f: Fr
       const a = t * 0.5; ctx.strokeStyle = '#e0a84a'; ctx.lineWidth = 3 * ws; ctx.beginPath();
       for (let s = 0; s < 2; s++) { const ang = a + s * Math.PI / 2, dx = Math.cos(ang) * 9 * ws, dy = Math.sin(ang) * 9 * ws; ctx.moveTo(cx - dx, cy - dy); ctx.lineTo(cx + dx, cy + dy); }
       ctx.stroke(); ctx.fillStyle = '#ffe096'; ctx.beginPath(); ctx.arc(cx, cy, 3 * ws, 0, 7); ctx.fill();
+      continue;
+    }
+    if (style === 'ideaegg') {
+      const r = (7 + Math.sin(t / 28)) * ws;
+      ctx.fillStyle = '#6f4816'; ctx.beginPath(); ctx.arc(cx, cy, r + 2 * ws, 0, 7); ctx.fill();
+      ctx.fillStyle = '#f4ae26'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
+      ctx.fillStyle = t % 12 < 6 ? '#f67070' : '#42e8f0'; ctx.beginPath(); ctx.arc(cx, cy, 3 * ws, 0, 7); ctx.fill();
+      continue;
+    }
+    if (style === 'gnat') {
+      ctx.fillStyle = '#f67070'; ctx.beginPath(); ctx.arc(cx, cy, 3.5 * ws, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#42e8f0'; ctx.lineWidth = Math.max(1, ws); ctx.beginPath();
+      const flap = Math.sin(t * 0.8) * 4 * ws;
+      ctx.moveTo(cx, cy); ctx.lineTo(cx - 3 * ws, cy - 5 * ws - flap); ctx.moveTo(cx, cy); ctx.lineTo(cx - 3 * ws, cy + 5 * ws + flap); ctx.stroke();
       continue;
     }
     if (style === 'knowledge') {

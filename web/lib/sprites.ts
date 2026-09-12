@@ -11,6 +11,7 @@ export const POSE_ORDER = [
   'entropy_1', 'entropy_2', 'entropy_3',
   'knowledgebomb_1', 'knowledgebomb_2',
   'riposte_1', 'riposte_2', 'riposte_3',
+  'ideahatch', 'backmind', 'braindrain_1', 'braindrain_2',
 ];
 
 export function listChars(): string[] {

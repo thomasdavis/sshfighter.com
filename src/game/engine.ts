@@ -59,6 +59,9 @@ function attackTotal(k: AttackKind): number {
   if (k === 'freetier') return FREETIER.total;
   if (k === 'bombardment') return BOMBARDMENT.total;
   if (k === 'riposte') return RIPOSTE.total;
+  if (k === 'ideahatch') return IDEA_HATCH.total;
+  if (k === 'backmind') return BACK_MIND.total;
+  if (k === 'braindrain') return BRAIN_DRAIN.total;
   if (k === 'punch' || k === 'kick') { const a = ATTACKS[k]; return a.startup + a.active + a.recovery; }
   return 0;
 }
@@ -84,6 +87,7 @@ export function attackActive(f: Fighter): boolean {
   if (f.attack === 'phase') return f.attackFrame >= PHASE.startup && f.attackFrame < PHASE.startup + PHASE.active;
   if (f.attack === 'blink') return f.attackFrame >= BLINK.startup && f.attackFrame < BLINK.startup + BLINK.active;
   if (f.attack === 'jumpkick') return f.attackFrame >= JUMPKICK.startup && f.attackFrame < JUMPKICK.startup + JUMPKICK.active;
+  if (f.attack === 'braindrain') return f.attackFrame >= BRAIN_DRAIN.startup && f.attackFrame < BRAIN_DRAIN.startup + BRAIN_DRAIN.active;
   return false; // construct / volley / boomerang spawn projectiles; riposte answers with counterActive()
 }
 
@@ -169,6 +173,16 @@ export const BOMBARDMENT = {
 // narrow — it has no hitbox of its own, grants no invulnerability, never touches
 // projectiles (that is REFLECT), and a throw goes straight through it.
 export const RIPOSTE = { startup: 5, active: 13, recovery: 21, total: 39, dmg: 16, kb: 4.6, punishStun: 22 };
+// FLYBRAIN — IDEA HATCH plants one inert egg; after a readable delay it cracks
+// into three fully two-dimensional homing gnats.
+export const IDEA_HATCH = { startup: 9, spawn: 12, recovery: 16, total: 36, hatch: 22, life: 66, maxActive: 1 };
+export const THOUGHT_GNAT = { speed: 3.0, steer: 0.22, dmg: 4, chip: 1, life: 78, r: 4 };
+// BACK OF MIND has no proactive hitbox. Contact during the counter window moves
+// Flybrain behind the attacker and resolves the retaliation atomically.
+export const BACK_MIND = { startup: 4, active: 13, recovery: 16, total: 33, dmg: 14, kb: 4.6, shift: 18 };
+// BRAIN DRAIN is a punishable, medium-range three-pulse tether. Only clean hits
+// heal; blocked pulses deal chip but return no life.
+export const BRAIN_DRAIN = { startup: 8, active: 18, recovery: 18, total: 44, dmg: 4, range: 82, kb: 0.6, chip: 1, vert: 42, hitEvery: 6, heal: 2 };
 const FIRE_SPEED = 3.4, FIRE_R = 11, FIGHTER_WORLD_H = 56, FIRE_DMG = 12, FIRE_CHIP = 3;
 const EARLY_UP_GRACE_Y = 26;
 
@@ -216,15 +230,18 @@ export function specialMoveStats(attack: SpecialAttack): SpecialMoveStats {
   if (attack === 'freetier') return { startup: FREETIER.startup, active: FREETIER.active, recovery: FREETIER.recovery, damagePerHit: 0, maxHits: 0, maxDamage: 0, chipPerHit: 0, range: 0, impact: `Restores ${FREETIER.heal} health on completion` };
   if (attack === 'bombardment') return { startup: BOMBARDMENT.firstSpawn, active: BOMBARDMENT.secondSpawn - BOMBARDMENT.firstSpawn + 1, recovery: BOMBARDMENT.total - BOMBARDMENT.secondSpawn - 1, damagePerHit: BOMBARDMENT.dmg, maxHits: 2, maxDamage: BOMBARDMENT.dmg * 2, chipPerHit: BOMBARDMENT.chip, range: STAGE_RIGHT - STAGE_LEFT, impact: 'Two staggered fixed-diagonal projectiles' };
   if (attack === 'riposte') return { startup: RIPOSTE.startup, active: RIPOSTE.active, recovery: RIPOSTE.recovery, damagePerHit: RIPOSTE.dmg, maxHits: 1, maxDamage: RIPOSTE.dmg, chipPerHit: 0, range: 0, impact: 'Melee counter; returns the absorbed blow' };
+  if (attack === 'ideahatch') return { startup: IDEA_HATCH.spawn, active: IDEA_HATCH.hatch, recovery: IDEA_HATCH.recovery, damagePerHit: THOUGHT_GNAT.dmg, maxHits: 3, maxDamage: THOUGHT_GNAT.dmg * 3, chipPerHit: THOUGHT_GNAT.chip, range: STAGE_RIGHT - STAGE_LEFT, impact: 'Delayed three-gnat homing trap' };
+  if (attack === 'backmind') return { startup: BACK_MIND.startup, active: BACK_MIND.active, recovery: BACK_MIND.recovery, damagePerHit: BACK_MIND.dmg, maxHits: 1, maxDamage: BACK_MIND.dmg, chipPerHit: 0, range: STAGE_RIGHT - STAGE_LEFT, impact: 'Reactive behind-the-attacker counter' };
+  if (attack === 'braindrain') { const hits = Math.ceil(BRAIN_DRAIN.active / BRAIN_DRAIN.hitEvery); return { startup: BRAIN_DRAIN.startup, active: BRAIN_DRAIN.active, recovery: BRAIN_DRAIN.recovery, damagePerHit: BRAIN_DRAIN.dmg, maxHits: hits, maxDamage: BRAIN_DRAIN.dmg * hits, chipPerHit: BRAIN_DRAIN.chip, range: BRAIN_DRAIN.range, impact: `Three-pulse tether; heals ${BRAIN_DRAIN.heal} per clean hit` }; }
   const exhaustive: never = attack;
   throw new Error(`missing public move stats for ${String(exhaustive)}`);
 }
 
-/** True while REBUTTAL's counter window is open: a melee hit landing on this
- *  fighter right now is absorbed and returned instead of connecting. Exported so
- *  the bot wire view can publish the window rather than making agents infer it. */
+/** True while a fighter's counter window is open. Exported so the bot wire view
+ *  can publish the window rather than making agents infer it. */
 export function counterActive(f: Fighter): boolean {
-  return f.attack === 'riposte' && f.attackFrame >= RIPOSTE.startup && f.attackFrame < RIPOSTE.startup + RIPOSTE.active;
+  return (f.attack === 'riposte' && f.attackFrame >= RIPOSTE.startup && f.attackFrame < RIPOSTE.startup + RIPOSTE.active)
+    || backMindReady(f);
 }
 
 interface MeleeSpec { dmg: number; range: number; kb: number; chip: number; vert: number; omni?: boolean }
@@ -266,6 +283,7 @@ function meleeSpec(f: Fighter): MeleeSpec | null {
   if (k === 'phase') return { dmg: PHASE.dmg, range: PHASE.range, kb: PHASE.kb, chip: PHASE.chip, vert: PHASE.vert, omni: true }; // dash strikes through either side
   if (k === 'blink') return { dmg: BLINK.dmg, range: BLINK.range, kb: BLINK.kb, chip: BLINK.chip, vert: BLINK.vert };
   if (k === 'jumpkick') return { dmg: JUMPKICK.dmg, range: JUMPKICK.range, kb: JUMPKICK.kb, chip: JUMPKICK.chip, vert: JUMPKICK.vert };
+  if (k === 'braindrain') return { dmg: BRAIN_DRAIN.dmg, range: BRAIN_DRAIN.range, kb: BRAIN_DRAIN.kb, chip: BRAIN_DRAIN.chip, vert: BRAIN_DRAIN.vert };
   return null;
 }
 
@@ -304,6 +322,9 @@ export function attackExtension(f: Fighter): number {
   if (f.attack === 'freetier') return (Math.sin(f.attackFrame * 0.5) + 1) / 2;
   if (f.attack === 'bombardment') return Math.min(1, f.attackFrame / BOMBARDMENT.firstSpawn);
   if (f.attack === 'riposte') return f.attackFrame < RIPOSTE.startup ? f.attackFrame / RIPOSTE.startup : 1;
+  if (f.attack === 'ideahatch') return Math.min(1, f.attackFrame / IDEA_HATCH.spawn);
+  if (f.attack === 'backmind') return (Math.sin(f.attackFrame * 0.65) + 1) / 2;
+  if (f.attack === 'braindrain') return (Math.sin(f.attackFrame * 1.05) + 1) / 2;
   if (f.attack === 'jumpkick') return Math.min(1, f.attackFrame / JUMPKICK.startup);
   if (f.attack !== 'punch' && f.attack !== 'kick') return 1;
   const a = ATTACKS[f.attack];
@@ -390,6 +411,9 @@ function derivePose(f: Fighter): void {
   if (f.attack === 'freetier') { f.pose = 'freetier'; return; }
   if (f.attack === 'bombardment') { f.pose = 'bombardment'; return; }
   if (f.attack === 'riposte') { f.pose = 'riposte'; return; }
+  if (f.attack === 'ideahatch') { f.pose = 'ideahatch'; return; }
+  if (f.attack === 'backmind') { f.pose = 'backmind'; return; }
+  if (f.attack === 'braindrain') { f.pose = 'braindrain'; return; }
   if (f.attack === 'jumpkick') { f.pose = 'jumpkick'; return; }
   if (f.attack === 'punch') { f.pose = f.attackCrouch ? 'crouchpunch' : 'punch'; return; }
   if (f.attack === 'kick') { f.pose = f.attackCrouch ? 'crouchkick' : 'kick'; return; }
@@ -486,6 +510,8 @@ function stepFighter(f: Fighter, other: Fighter, inp: Inputs, live: boolean): vo
   }
   // Ink Tempest sustains a close flurry that strikes in three discrete pulses.
   if (f.attack === 'inktempest' && f.attackFrame > INK_TEMPEST.startup && (f.attackFrame - INK_TEMPEST.startup) % INK_TEMPEST.hitEvery === 0) f.attackHit = false;
+  // Brain Drain reconnects on three discrete neural pulses.
+  if (f.attack === 'braindrain' && f.attackFrame > BRAIN_DRAIN.startup && (f.attackFrame - BRAIN_DRAIN.startup) % BRAIN_DRAIN.hitEvery === 0) f.attackHit = false;
   // Free Tier pays out only if the whole channel completes uninterrupted — a clean
   // hit cancels the attack (resolveHit), which forfeits the heal.
   if (f.attack === 'freetier' && f.attackFrame === FREETIER.startup + FREETIER.active) f.hp = Math.min(100, f.hp + FREETIER.heal);
@@ -581,6 +607,8 @@ function startAttack(f: Fighter, kind: AttackKind, contextDescent = false): void
   if (kind === 'blink') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; }
   // REBUTTAL — plant and read. No i-frames and no armor: the counter window is the only defense.
   if (kind === 'riposte') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; }
+  // Flybrain's three techniques are deliberate grounded commitments.
+  if (kind === 'ideahatch' || kind === 'backmind' || kind === 'braindrain') { f.y = 0; f.vy = 0; f.vx = 0; f.crouching = false; }
   // jumpkick keeps the jump arc — no velocity change
 }
 
@@ -600,6 +628,28 @@ function separate(a: Fighter, b: Fighter): void {
 
 interface HitFx { x: number; y: number; heavy: boolean; blocked: boolean; }
 
+function backMindReady(f: Fighter): boolean {
+  return f.attack === 'backmind' && f.attackFrame >= BACK_MIND.startup && f.attackFrame < BACK_MIND.startup + BACK_MIND.active;
+}
+
+/** Resolve Flybrain's counter in one transaction so the incoming hit cannot
+ * trade with it later in the same simulation tick. */
+function triggerBackMind(counter: Fighter, attacker: Fighter): HitFx {
+  const oldFacing = attacker.facing;
+  counter.x = Math.max(STAGE_LEFT, Math.min(STAGE_RIGHT, attacker.x - oldFacing * BACK_MIND.shift));
+  counter.facing = oldFacing;
+  counter.attackFrame = BACK_MIND.startup + BACK_MIND.active;
+  counter.attackHit = true;
+  counter.vx = 0;
+  attacker.hp = Math.max(0, attacker.hp - BACK_MIND.dmg);
+  attacker.stun = HIT_STUN;
+  attacker.attack = 'none';
+  attacker.attackFrame = 0;
+  attacker.attackHit = false;
+  attacker.vx = counter.facing * BACK_MIND.kb;
+  return { x: (counter.x + attacker.x) / 2, y: Math.max(counter.y, attacker.y) + 22, heavy: true, blocked: false };
+}
+
 function resolveHit(att: Fighter, def: Fighter): HitFx | null {
   if (!attackActive(att) || att.attackHit) return null;
   if (def.phaseT > 0) return null;                 // intangible defender — the blow passes through
@@ -611,6 +661,8 @@ function resolveHit(att: Fighter, def: Fighter): HitFx | null {
   if (Math.abs(dx) > spec.range) return null;
   if (Math.abs(att.y - def.y) > spec.vert) return null;
   att.attackHit = true;
+
+  if (att.attack !== 'throw' && backMindReady(def)) return triggerBackMind(def, att);
 
   // RUBRIC — REBUTTAL absorbs the blow and returns it to its owner. Checked before
   // guard/armor so a countered attack never also chips or flinches the examiner.
@@ -661,6 +713,7 @@ function resolveHit(att: Fighter, def: Fighter): HitFx | null {
     if (att.attack === 'context') { def.vy = 4.8; def.y = Math.max(def.y, 0.001); }
     if (att.attack === 'branchwalk') { def.vy = 2.4; def.y = Math.max(def.y, 0.001); }
     if (att.attack === 'storyarc') { def.vy = 3.6; def.y = Math.max(def.y, 0.001); }
+    if (att.attack === 'braindrain') att.hp = Math.min(100, att.hp + BRAIN_DRAIN.heal);
   }
   // contact point between the fighters, ~chest height above the ground
   return { x: (att.x + def.x) / 2, y: Math.max(att.y, def.y) + 18, heavy: !guarding && spec.dmg >= 8, blocked: guarding };
@@ -725,6 +778,27 @@ function spawnStreamMote(m: Match, f: Fighter, owner: 'a' | 'b'): void {
     vx: f.facing * STREAM.speed, vy: 0, active: true, hit: false, frame: 0,
     facing: f.facing, style: 'mote', sourceAttack: 'stream', life: 120 });
 }
+// FLYBRAIN — the egg itself is harmless. Its delayed hatch is the threat.
+function spawnIdeaEgg(m: Match, f: Fighter, owner: 'a' | 'b'): void {
+  const active = m.projectiles.filter((p) => p.active && p.owner === owner && p.style === 'ideaegg').length;
+  if (active >= IDEA_HATCH.maxActive) return;
+  const x = Math.max(STAGE_LEFT + 7, Math.min(STAGE_RIGHT - 7, f.x + f.facing * 27));
+  m.projectiles.push({ id: m.nextProjectileId++, owner, x, y: 9, vx: 0, vy: 0,
+    active: true, hit: false, frame: 0, facing: f.facing, style: 'ideaegg',
+    sourceAttack: 'ideahatch', life: IDEA_HATCH.life, fireT: IDEA_HATCH.hatch });
+}
+function hatchIdeaEgg(m: Match, egg: Projectile): void {
+  const def = egg.owner === 'a' ? m.b : m.a;
+  const dir = (def.x >= egg.x ? 1 : -1) as 1 | -1;
+  for (const lane of [-1, 0, 1]) {
+    m.projectiles.push({
+      id: m.nextProjectileId++, owner: egg.owner, x: egg.x, y: egg.y + 13 + (lane + 1) * 8,
+      vx: dir * (THOUGHT_GNAT.speed * 0.72), vy: lane * 0.72,
+      active: true, hit: false, frame: lane + 1, facing: dir, style: 'gnat',
+      sourceAttack: 'ideahatch', life: THOUGHT_GNAT.life,
+    });
+  }
+}
 // shared — a VOLLEY: three motes loosed in a low/mid/high spread.
 function spawnVolley(m: Match, f: Fighter, owner: 'a' | 'b'): void {
   const ys = [18, 32, 46];
@@ -756,7 +830,26 @@ function stepProjectiles(m: Match): void {
       continue;
     }
 
-    if (p.style === 'boomerang') {
+    if (p.style === 'ideaegg') {
+      if (p.life !== undefined) p.life--;
+      if (p.fireT !== undefined) p.fireT--;
+      if ((p.fireT ?? 1) <= 0) { hatchIdeaEgg(m, p); p.active = false; }
+      else if ((p.life ?? 0) <= 0) p.active = false;
+      continue;
+    }
+
+    if (p.style === 'gnat') {
+      const dx = def.x - p.x, dy = def.y + 27 - p.y;
+      const distance = Math.max(1, Math.hypot(dx, dy));
+      const targetVx = dx / distance * THOUGHT_GNAT.speed;
+      const targetVy = dy / distance * THOUGHT_GNAT.speed;
+      p.vx = approach(p.vx, targetVx, THOUGHT_GNAT.steer);
+      p.vy = approach(p.vy, targetVy, THOUGHT_GNAT.steer);
+      p.facing = (p.vx >= 0 ? 1 : -1);
+      p.x += p.vx; p.y += p.vy;
+      if (p.life !== undefined) p.life--;
+      if ((p.life ?? 0) <= 0) { p.active = false; continue; }
+    } else if (p.style === 'boomerang') {
       if (!p.returning) {
         p.x += p.vx;                                                                     // fly out at full speed
         const flown = Math.abs(p.x - (p.x0 ?? p.x));
@@ -775,12 +868,17 @@ function stepProjectiles(m: Match): void {
     }
 
     if (p.hit || def.hp <= 0) continue;
-    const r = p.style === 'knowledge' ? BOMBARDMENT.r : p.style === 'mote' ? MOTE.r : p.style === 'boomerang' ? BOOMERANG.r : p.style === 'rope' ? LASSO.r : FIRE_R;
-    const dmg = p.style === 'knowledge' ? BOMBARDMENT.dmg : p.style === 'mote' ? MOTE.dmg : p.style === 'boomerang' ? BOOMERANG.dmg : p.style === 'rope' ? LASSO.dmg : FIRE_DMG;
-    const chip = p.style === 'knowledge' ? BOMBARDMENT.chip : p.style === 'mote' ? MOTE.chip : p.style === 'boomerang' ? BOOMERANG.chip : p.style === 'rope' ? LASSO.chip : FIRE_CHIP;
+    const r = p.style === 'knowledge' ? BOMBARDMENT.r : p.style === 'mote' ? MOTE.r : p.style === 'gnat' ? THOUGHT_GNAT.r : p.style === 'boomerang' ? BOOMERANG.r : p.style === 'rope' ? LASSO.r : FIRE_R;
+    const dmg = p.style === 'knowledge' ? BOMBARDMENT.dmg : p.style === 'mote' ? MOTE.dmg : p.style === 'gnat' ? THOUGHT_GNAT.dmg : p.style === 'boomerang' ? BOOMERANG.dmg : p.style === 'rope' ? LASSO.dmg : FIRE_DMG;
+    const chip = p.style === 'knowledge' ? BOMBARDMENT.chip : p.style === 'mote' ? MOTE.chip : p.style === 'gnat' ? THOUGHT_GNAT.chip : p.style === 'boomerang' ? BOOMERANG.chip : p.style === 'rope' ? LASSO.chip : FIRE_CHIP;
     const withinX = Math.abs(def.x - p.x) < r + BODY_HALF;
     const withinY = p.y >= def.y - 6 && p.y <= def.y + FIGHTER_WORLD_H;
     if (withinX && withinY) {
+      if (backMindReady(def)) {
+        p.hit = true; p.active = false;
+        applyHitFx(m, triggerBackMind(def, p.owner === 'a' ? m.a : m.b));
+        continue;
+      }
       // XENON REFLECT — turn a projectile back at its sender (before any pass-through)
       const reflecting = def.attack === 'reflect' && def.attackFrame >= REFLECT.startup && def.attackFrame < REFLECT.startup + REFLECT.active;
       if (reflecting && p.style !== 'rope') {
@@ -804,7 +902,7 @@ function stepProjectiles(m: Match): void {
     }
   }
   // opposing straight projectiles meeting cancel out (constructs / boomerangs excluded)
-  const act = m.projectiles.filter((p) => p.active && p.style !== 'construct' && p.style !== 'boomerang' && p.style !== 'rope' && p.style !== 'knowledge');
+  const act = m.projectiles.filter((p) => p.active && p.style !== 'construct' && p.style !== 'ideaegg' && p.style !== 'boomerang' && p.style !== 'rope' && p.style !== 'knowledge');
   for (let i = 0; i < act.length; i++) for (let j = i + 1; j < act.length; j++) {
     if (act[i]!.owner !== act[j]!.owner && Math.abs(act[i]!.x - act[j]!.x) < FIRE_R * 2) { act[i]!.active = false; act[j]!.active = false; }
   }
@@ -858,6 +956,7 @@ export function stepMatch(m: Match, inA: Inputs, inB: Inputs): void {
     if (f.attack === 'bombardment' && (f.attackFrame === BOMBARDMENT.firstSpawn || f.attackFrame === BOMBARDMENT.secondSpawn)) spawnKnowledgeCore(m, f, side);
     if (f.attack === 'stream' && f.attackFrame >= STREAM.spawn && f.attackFrame < STREAM.spawn + STREAM.count * STREAM.spawnEvery
       && (f.attackFrame - STREAM.spawn) % STREAM.spawnEvery === 0) spawnStreamMote(m, f, side);
+    if (f.attack === 'ideahatch' && f.attackFrame === IDEA_HATCH.spawn) spawnIdeaEgg(m, f, side);
   }
   stepProjectiles(m);
 

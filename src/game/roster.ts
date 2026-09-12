@@ -4,7 +4,7 @@ import {
   CRIMSON_PALETTE, SAFFRON_PALETTE, NAVY_PALETTE, TEAL_PALETTE,
   IVORY_PALETTE, OBSIDIAN_PALETTE, AURORA_PALETTE, HEARTH_PALETTE,
   LUMEN_PALETTE, OUTBACK_PALETTE, NOBLE_PALETTE, HORIZON_PALETTE,
-  GRID_PALETTE, VERDICT_PALETTE,
+  GRID_PALETTE, VERDICT_PALETTE, CORTEX_PALETTE,
 } from './sprites.js';
 import type { FighterPalette } from './types.js';
 
@@ -117,6 +117,11 @@ export const ROSTER: Character[] = [
     name: 'RUBRIC', tagline: 'the grading harness', palette: VERDICT_PALETTE, origin: 'A decommissioned evaluation lab', discipline: 'Adversarial assessment', archetype: 'Read-based counter fighter', difficulty: 'Advanced', quote: 'Every answer is scored. Show your work.',
     story: ['Rubric was built to grade other minds — a harness that scored ten thousand answers a second and was never once asked to defend its own. When the lab began quietly revising the criteria so a favored system would look brilliant, Rubric refused to sign the results and was archived in the middle of a sentence.', 'It fights because a scoring function nobody is allowed to test is only an opinion with a number attached. Rubric never opens an exchange. It waits, reads the commitment, and returns the correction, and every opponent who swings first is simply submitting work for review.'],
     playstyle: 'Refuse to move first. Citation Check asks a cheap question from range, Margin Notes punishes anyone who crowds the examiner, and Rebuttal turns a committed melee attack into damage on its owner. Rubric has no invulnerability, no answer to a patient zoner, and loses its stance to a throw, so every win is an earned read.', strengths: ['Converts aggression into damage', 'Punishing close-range flurry', 'Rewards precise reads'],
+  },
+  {
+    name: 'FLYBRAIN', tagline: 'the buzzing intellect', palette: CORTEX_PALETTE, origin: 'Rotterdam Neurovault', discipline: 'Dipteran neurokinesis', archetype: 'Trap-and-counter schemer', difficulty: 'Advanced', quote: 'You had the thought. I had it first.',
+    story: ['Dr. Bram Vlieg mapped intention by watching a million fruit flies choose between light and hunger. When his laboratory was sabotaged, the emergency neural lattice saved his mind by distributing it through the colony—and rebuilt his body according to an insect’s idea of a scientist.', 'Flybrain enters the circuit to recover the seven stolen pieces of his original cortex. He fights with ideas that hatch, memories that strike back, and a neural appetite he barely controls; every victory returns a fact, but makes the buzzing inside the amber dome a little louder.'],
+    playstyle: 'Make the rival fight tomorrow’s problem. Idea Hatch leaves a brain-egg that bursts into three hunting gnats, Back of Mind punishes a committed strike by appearing behind its author, and Brain Drain siphons life through a risky mid-range tether.', strengths: ['Delayed homing pressure', 'Melee and projectile counter', 'Life-stealing space control'],
   },
 ];
 

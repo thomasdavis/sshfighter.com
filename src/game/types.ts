@@ -8,14 +8,16 @@ export type Pose = 'idle' | 'walk' | 'crouch' | 'jump' | 'fall' | 'punch' | 'kic
   | 'context' | 'branchwalk' | 'mergecomet'
   | 'storyarc' | 'plottwist' | 'inktempest'
   | 'construct' | 'nova' | 'volley' | 'boomerang' | 'armor' | 'phase' | 'lasso' | 'reflect' | 'blink' | 'jumpkick'
-  | 'stream' | 'freetier' | 'bombardment' | 'riposte';
+  | 'stream' | 'freetier' | 'bombardment' | 'riposte'
+  | 'ideahatch' | 'backmind' | 'braindrain';
 export type AttackKind = 'none' | 'punch' | 'kick' | 'throw' | 'hadouken' | 'shoryuken' | 'hurricane'
   | 'electric' | 'rolling' | 'verticalroll'
   | 'testimony' | 'nullstep' | 'entropy'
   | 'context' | 'branchwalk' | 'mergecomet'
   | 'storyarc' | 'plottwist' | 'inktempest'
   | 'construct' | 'nova' | 'volley' | 'boomerang' | 'armor' | 'phase' | 'lasso' | 'reflect' | 'blink' | 'jumpkick'
-  | 'stream' | 'freetier' | 'bombardment' | 'riposte';
+  | 'stream' | 'freetier' | 'bombardment' | 'riposte'
+  | 'ideahatch' | 'backmind' | 'braindrain';
 
 export interface FighterPalette {
   skin: RGB; gi: RGB; giDark: RGB; hair: RGB; belt: RGB;
@@ -77,8 +79,8 @@ export interface Projectile {
   hit: boolean;           // already connected
   frame: number;          // animation timer
   facing: 1 | -1;
-  style: 'blue' | 'fire' | 'sonic' | 'boomerang' | 'construct' | 'mote' | 'rope' | 'citation' | 'knowledge';
-  sourceAttack: 'hadouken' | 'bombardment' | 'boomerang' | 'lasso' | 'construct' | 'stream' | 'volley';
+  style: 'blue' | 'fire' | 'sonic' | 'boomerang' | 'construct' | 'mote' | 'rope' | 'citation' | 'knowledge' | 'ideaegg' | 'gnat';
+  sourceAttack: 'hadouken' | 'bombardment' | 'boomerang' | 'lasso' | 'construct' | 'stream' | 'volley' | 'ideahatch';
   parentId?: number;       // child projectile source (currently a construct turret)
   life?: number;          // frames remaining (construct turret; motes)
   fireT?: number;         // construct: frames until it spits the next mote

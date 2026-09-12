@@ -5,7 +5,7 @@
 // and sprites are downscaled from their high-res source to the on-screen size.
 import { createGrid, fillRect, blit, resizeGridH, rgb, type PixelGrid, type RGB } from '../render/pixel.js';
 import { drawFighter } from './sprites.js';
-import { WORLD_W, WORLD_H, GROUND_Y, STAGE_LEFT, STAGE_RIGHT, ENTROPY, TESTIMONY, THROW, CONTEXT, BRANCHWALK, MERGE_COMET, STORY_ARC, PLOT_TWIST, INK_TEMPEST, FREETIER, BOMBARDMENT, RIPOSTE, attackActive, attackExtension } from './engine.js';
+import { WORLD_W, WORLD_H, GROUND_Y, STAGE_LEFT, STAGE_RIGHT, ENTROPY, TESTIMONY, THROW, CONTEXT, BRANCHWALK, MERGE_COMET, STORY_ARC, PLOT_TWIST, INK_TEMPEST, FREETIER, BOMBARDMENT, RIPOSTE, BACK_MIND, BRAIN_DRAIN, attackActive, attackExtension } from './engine.js';
 import { SPRITES } from './sprite-set.js';
 import { PROJECTILES } from './projectile-set.js';
 import { STAGES } from './stage-set.js';
@@ -43,6 +43,7 @@ function frameName(f: Fighter): string {
     case 'inktempest': return `inktempest_${f.attackFrame < INK_TEMPEST.startup ? 1 : (f.attackFrame < INK_TEMPEST.startup + INK_TEMPEST.active ? 2 : 3)}`;
     case 'bombardment': return `knowledgebomb_${f.attackFrame < BOMBARDMENT.secondSpawn ? 1 : 2}`;
     case 'riposte': return `riposte_${f.attackFrame < RIPOSTE.startup + RIPOSTE.active ? 1 : (f.attackFrame < RIPOSTE.startup + RIPOSTE.active + 8 ? 2 : 3)}`;
+    case 'braindrain': return `braindrain_${1 + (Math.floor(f.attackFrame / 4) % 2)}`;
     default: return f.pose;
   }
 }
@@ -287,6 +288,36 @@ function drawUncloseGate(g: PixelGrid, v: View, f: Fighter): void {
     ringPixels(g, v, f.x, cy, r, gold);
     ringPixels(g, v, f.x, cy, r + 2, white);
   }
+}
+
+/** Flybrain's neural techniques remain legible after terminal downsampling. */
+function drawFlybrainTech(g: PixelGrid, v: View, f: Fighter, other: Fighter): void {
+  const cyan = rgb(42, 232, 240), pale = rgb(222, 255, 244), coral = rgb(246, 112, 110), amber = rgb(244, 178, 42);
+  const headY = GROUND_Y - f.y - 45;
+  if (f.attack === 'backmind') {
+    const live = f.attackFrame >= BACK_MIND.startup && f.attackFrame < BACK_MIND.startup + BACK_MIND.active;
+    const count = live ? 5 : 3;
+    for (let i = 1; i <= count; i++) {
+      const x = f.x - f.facing * (7 + i * 5);
+      const y = headY + i * 5 + (f.attackFrame % 2);
+      ringPixels(g, v, x, y, 2 + i, i % 2 ? cyan : pale);
+    }
+    return;
+  }
+  if (f.attack !== 'braindrain' || !attackActive(f)) return;
+  const originX = f.x + f.facing * 17, originY = GROUND_Y - f.y - 31;
+  const dx = other.x - originX, dy = (GROUND_Y - other.y - 29) - originY;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const length = Math.min(distance, BRAIN_DRAIN.range);
+  const steps = Math.max(5, Math.round(length / 4));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const wave = Math.sin(t * Math.PI * 7 + f.attackFrame * 0.9) * 2.2;
+    const x = originX + dx / distance * length * t;
+    const y = originY + dy / distance * length * t + wave;
+    wrect(g, v, x, y, i % 4 === 0 ? 2 : 1, i % 4 === 0 ? 2 : 1, i % 3 === 0 ? coral : (i % 2 ? cyan : pale));
+  }
+  ringPixels(g, v, f.x, headY, 6 + (f.attackFrame % 3), amber);
 }
 
 // ---- renderer-native fight HUD ----
@@ -606,6 +637,18 @@ function drawProjectiles(g: PixelGrid, v: View, m: Match): void {
       fillCircle(g, v, cx, cy, r + 1, rgb(100, 224, 236));
       fillCircle(g, v, cx + p.facing * 2, cy, r - 3, rgb(214, 255, 248));
       wrect(g, v, cx - p.facing * 7, cy - 1, 11, 2, rgb(238, 255, 250));
+    } else if (p.style === 'ideaegg') {
+      const pulse = 1 + Math.sin(p.frame * 0.35) * 0.12;
+      fillCircle(g, v, cx, cy, 8 * pulse, rgb(114, 72, 22));
+      fillCircle(g, v, cx, cy, 6 * pulse, rgb(244, 174, 38));
+      fillCircle(g, v, cx, cy, 3.5 * pulse, p.frame % 6 < 3 ? rgb(246, 112, 110) : rgb(42, 232, 240));
+      for (let i = 0; i < Math.min(5, Math.floor(p.frame / 5)); i++) wrect(g, v, cx - 4 + i * 2, cy - 7 + (i % 2), 1, 4, rgb(222, 255, 244));
+    } else if (p.style === 'gnat') {
+      const flutter = Math.sin(p.frame * 1.8) * 3;
+      fillCircle(g, v, cx, cy, 3.5, rgb(246, 112, 110));
+      fillCircle(g, v, cx + p.facing * 2, cy, 1.5, rgb(222, 255, 244));
+      wrect(g, v, cx - 1, cy - 4 - flutter, 3, 4, rgb(72, 224, 234));
+      wrect(g, v, cx - 1, cy + 1 + flutter, 3, 4, rgb(72, 224, 234));
     } else if (p.style === 'citation') {
       for (let t = 4; t >= 1; t--) fillCircle(g, v, cx - p.facing * t * 5, cy, Math.max(1, 7 - t), t % 2 ? rgb(124, 58, 232) : rgb(242, 176, 48));
       fillCircle(g, v, cx, cy, 8, rgb(136, 66, 246));
@@ -671,7 +714,11 @@ export function composeScene(m: Match, pw = WORLD_W, ph = WORLD_H, practice = fa
   else drawBackground(g, v);
   if (MOTIFS_ON) drawMotifs(g, v, m.frame, m.stage);
   const order = m.a.x <= m.b.x ? [m.a, m.b] : [m.b, m.a];
-  for (const f of order) { drawFighterOnStage(g, v, f); drawSpecialAura(g, v, f); drawOmegaTech(g, v, f); drawCodexTrails(g, v, f); drawFableEmbers(g, v, f); drawUncloseGate(g, v, f); }
+  for (const f of order) {
+    drawFighterOnStage(g, v, f); drawSpecialAura(g, v, f); drawOmegaTech(g, v, f);
+    drawCodexTrails(g, v, f); drawFableEmbers(g, v, f); drawUncloseGate(g, v, f);
+    drawFlybrainTech(g, v, f, f === m.a ? m.b : m.a);
+  }
   drawProjectiles(g, v, m);
   drawSparks(g, v, m);
   if (MOTIFS_ON) drawMotifsFg(g, v, m.frame, m.stage);   // parallax foreground weather

@@ -94,6 +94,7 @@ function spriteFrame(f: Fighter): string {
     case 'victory': return `victory_${1 + Math.floor(f.animT / 9) % 3}`;
     case 'bombardment': return `knowledgebomb_${f.attackFrame < BOMBARDMENT.secondSpawn ? 1 : 2}`;
     case 'riposte': return `riposte_${f.attackFrame < RIPOSTE.startup + RIPOSTE.active ? 1 : (f.attackFrame < RIPOSTE.startup + RIPOSTE.active + 8 ? 2 : 3)}`;
+    case 'braindrain': return `braindrain_${1 + (Math.floor(f.attackFrame / 4) % 2)}`;
     default: return f.pose;
   }
 }
