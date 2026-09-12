@@ -47,6 +47,8 @@ const SPECIAL_FRAMES: Record<string, Bake> = {
   knowledgebomb_1: { pose: 'jump' }, knowledgebomb_2: { pose: 'fall' },
   groundtruth: { pose: 'crouchpunch', ext: 1 },
   riposte_1: { pose: 'block' }, riposte_2: { pose: 'punch', ext: 1 }, riposte_3: { pose: 'idle', phase: Math.PI },
+  ideahatch: { pose: 'crouch' }, backmind: { pose: 'block' },
+  braindrain_1: { pose: 'hadouken', ext: 0.55 }, braindrain_2: { pose: 'hadouken', ext: 1 },
 };
 
 function bakeFrame(grid: PixelGrid): { w: number; h: number; anchorX: number; anchorY: number; data: string } {

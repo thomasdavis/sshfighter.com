@@ -60,6 +60,7 @@ const CHARACTER_PROFILES: Record<string, Omit<CharacterAudioProfile, 'id'>> = {
   MEGAWATTS: { signature: 'Open-circuit storm', weight: .72, pitch: .975, presence: 3300, space: .5, material: 'electric' },
   RUBRIC: { signature: 'Red-ink verdict', weight: .47, pitch: 1.01, presence: 2050, space: .34, material: 'ink' },
   UNCLOSE: { signature: 'Token fracture', weight: .46, pitch: 1.025, presence: 3600, space: .55, material: 'signal' },
+  FLYBRAIN: { signature: 'Cortex swarm', weight: .41, pitch: 1.075, presence: 4750, space: .46, material: 'memory' },
 };
 
 export function characterAudioProfile(character: string): CharacterAudioProfile {
@@ -296,6 +297,9 @@ const SPECIAL_TREATMENTS: Record<string, { source: string; family: SpecialFamily
   'UNCLOSE:stream': { source: special('sfx_07b.ogg'), family: 'projectile' },
   'UNCLOSE:electric': { source: special('sfx_13c.ogg'), family: 'storm' },
   'UNCLOSE:freetier': { source: special('sfx_22b.ogg'), family: 'channel' },
+  'FLYBRAIN:ideahatch': { source: special('sfx_06b.ogg'), family: 'construct' },
+  'FLYBRAIN:backmind': { source: special('sfx_11d.ogg'), family: 'counter' },
+  'FLYBRAIN:braindrain': { source: special('sfx_18b.ogg'), family: 'channel' },
 };
 
 export function specialAudioTreatment(fighter: string, attack: string): SpecialAudioTreatment | null {

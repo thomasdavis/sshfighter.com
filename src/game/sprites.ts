@@ -89,6 +89,11 @@ export const GRID_PALETTE: FighterPalette = {
   skin: { r: 142, g: 92, b: 72 }, gi: { r: 112, g: 54, b: 214 }, giDark: { r: 22, g: 20, b: 34 },
   hair: { r: 238, g: 232, b: 210 }, belt: { r: 255, g: 194, b: 62 },
 };
+// FLYBRAIN — amber cortex glass, teal chitin and acid-lime extremities.
+export const CORTEX_PALETTE: FighterPalette = {
+  skin: { r: 240, g: 142, b: 116 }, gi: { r: 18, g: 116, b: 126 }, giDark: { r: 20, g: 28, b: 34 },
+  hair: { r: 238, g: 168, b: 42 }, belt: { r: 196, g: 246, b: 28 },
+};
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const shade = (c: RGB): RGB => ({ r: c.r >> 1, g: c.g >> 1, b: c.b >> 1 });

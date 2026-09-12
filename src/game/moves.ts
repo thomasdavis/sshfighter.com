@@ -124,6 +124,12 @@ const MOVE_SETS: Readonly<Record<string, readonly SpecialMoveDefinition[]>> = {
     { attack: 'electric', name: 'MARGIN NOTES', shortName: 'MARGIN', description: 'Plant and sustain a close flurry of red-ink corrections that clips a crowding opponent several times. It grants no armor, so a throw goes straight through it.', motion: ['D', 'B'], button: 'punch' },
     { attack: 'riposte', name: 'REBUTTAL', shortName: 'REBUTTAL', description: 'Take a reading stance. Any MELEE blow that lands inside the window is absorbed outright and returned as damage to whoever threw it. Projectiles pass straight through, throws beat it, and a whiff leaves Rubric wide open.', motion: ['D', 'B'], button: 'kick' },
   ],
+  // FLYBRAIN — delayed hatchlings, a reactive afterimage counter, and lifesteal.
+  FLYBRAIN: [
+    { attack: 'ideahatch', name: 'IDEA HATCH', shortName: 'HATCH', description: 'Plant a dormant brain-egg that waits, cracks open, then releases three tiny thought-gnats that curve through the air toward the rival from different heights.', motion: ['D', 'F'], button: 'punch' },
+    { attack: 'backmind', name: 'BACK OF MIND', shortName: 'BACK MIND', description: 'Leave a psychic afterimage as bait; if a melee strike or projectile touches it during the counter window, Flybrain appears behind its author and attacks immediately.', motion: ['B', 'F'], button: 'kick' },
+    { attack: 'braindrain', name: 'BRAIN DRAIN', shortName: 'DRAIN', description: 'Channel a mid-range neural tether for three pulses, stealing two health on every clean connection while remaining planted and vulnerable to a jump-in.', motion: ['D', 'B'], button: 'punch' },
+  ],
 };
 
 /** Every special AttackKind any roster fighter can perform — the single source of
@@ -169,6 +175,9 @@ export function specialMoveFrames(attack: SpecialAttack): readonly string[] {
   if (attack === 'freetier') return ['freetier'];
   if (attack === 'riposte') return ['riposte_1', 'riposte_2', 'riposte_3'];
   if (attack === 'bombardment') return ['knowledgebomb_1', 'knowledgebomb_2'];
+  if (attack === 'ideahatch') return ['ideahatch'];
+  if (attack === 'backmind') return ['backmind'];
+  if (attack === 'braindrain') return ['braindrain_1', 'braindrain_2'];
   return ['mergecomet_1', 'mergecomet_2', 'mergecomet_3'];
 }
 
