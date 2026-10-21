@@ -2,10 +2,13 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import Script from 'next/script';
 import { DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE_ALT } from '@/lib/metadata';
 
 const DESC = 'An arcade fighting game you play entirely over SSH — a live ranked ladder, watchable replays, character stats, hand-drawn pixel sprites and a bot API. No install. Just connect and fight.';
 const GOOGLE_ANALYTICS_ID = 'G-H6D2K44Q8T';
+// Second GA4 destination: the streetfighter.blah.dev property in the box's GA account.
+const BLAH_GOOGLE_ANALYTICS_ID = 'G-GDXBFC92WN';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sshfighter.com'),
@@ -66,6 +69,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>{children}</body>
       <GoogleAnalytics gaId={GOOGLE_ANALYTICS_ID} />
+      <Script id="ga-blah" strategy="afterInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('config','${BLAH_GOOGLE_ANALYTICS_ID}');`}
+      </Script>
     </html>
   );
 }
