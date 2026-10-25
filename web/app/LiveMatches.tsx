@@ -23,7 +23,7 @@ export function LiveMatches({ initial, colors }: { initial: LM[]; colors: Record
   }, []);
 
   if (!matches.length) {
-    return <div className="rs-empty">No live matches right now — <code style={{ color: 'var(--cyan)' }}>ssh sshfighter.com</code> and start one.</div>;
+    return <div className="rs-empty">No live matches right now — <code style={{ color: 'var(--cyan)' }}>ssh -p 2223 sshfighter.com</code> and start one.</div>;
   }
   return (
     <div className="rs-grid3">

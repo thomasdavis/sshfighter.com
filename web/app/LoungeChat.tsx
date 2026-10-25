@@ -96,7 +96,7 @@ export function LoungeChat({ initial, online, lounge, full }: { initial: Msg[]; 
 
       <div className="rs-lounge__foot">
         <span className="p">$</span>
-        <code>ssh <b>sshfighter.com</b></code>
+        <code>ssh -p 2223 <b>sshfighter.com</b></code>
         <span className="hint">→ open the lounge to chat</span>
       </div>
     </div>

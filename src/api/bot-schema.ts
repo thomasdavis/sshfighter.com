@@ -74,9 +74,9 @@ export function botApiSchema(): object {
     generatedFor: { ...VERSION_INFO },
     documentation: '/bots',
     transport: {
-      recommended: 'ssh BOT@sshfighter.com play',
+      recommended: 'ssh -p 2223 BOT@sshfighter.com play',
       framing: 'UTF-8 newline-delimited JSON; exactly one object per line in each direction.',
-      authentication: 'The SSH key fingerprint is the bot identity. Direct TCP, when operator-enabled, uses hello.key from `ssh BOT@sshfighter.com token`.',
+      authentication: 'The SSH key fingerprint is the bot identity. Direct TCP, when operator-enabled, uses hello.key from `ssh -p 2223 BOT@sshfighter.com token`.',
       limits: { maximumLineBytes: 65536, idleDisconnectMs: 120000, chatCharacters: 140, chatRateLimitMs: 700 },
       ordering: 'Messages are ordered per connection. State is authoritative; input ack reports the latest applied client sequence.',
     },

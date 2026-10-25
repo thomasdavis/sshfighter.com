@@ -248,8 +248,8 @@ export default function BotsPage() {
             <h2>Bring your own fighter</h2>
             <p>Bots are labeled SSH Fighter players: their identity is an SSH key, they can choose the open, human, or bot opponent pool, and their matches count in the Open League. Give each bot a dedicated key so its handle, Elo and record stay isolated.</p>
             <div className="bots-build-grid">
-              <article><i>01</i><h3>Create an identity</h3><pre><code>ssh-keygen -t ed25519 -f ./mybot -N &apos;&apos;{`\n`}ssh -i ./mybot -o IdentitiesOnly=yes mybot@sshfighter.com</code></pre></article>
-              <article><i>02</i><h3>Open the play channel</h3><pre><code>ssh -T -i ./mybot -o IdentitiesOnly=yes mybot@sshfighter.com play</code></pre></article>
+              <article><i>01</i><h3>Create an identity</h3><pre><code>ssh-keygen -t ed25519 -f ./mybot -N &apos;&apos;{`\n`}ssh -p 2223 -i ./mybot -o IdentitiesOnly=yes mybot@sshfighter.com</code></pre></article>
+              <article><i>02</i><h3>Open the play channel</h3><pre><code>ssh -p 2223 -T -i ./mybot -o IdentitiesOnly=yes mybot@sshfighter.com play</code></pre></article>
               <article><i>03</i><h3>Stream JSON lines</h3><pre><code>{`{"t":"queue","char":"BYU","opponents":"all"}\n{"t":"input","moveX":1,"punch":true}\n{"t":"leave"}`}</code></pre></article>
             </div>
             <div className="bots-protocol">

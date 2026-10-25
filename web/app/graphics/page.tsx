@@ -179,7 +179,7 @@ export default function GraphicsPage() {
               <p>Original art, a deterministic pixel canvas, smart glyph fitting, exact diffs and strict backpressure make the terminal feel like an arcade cabinet.</p>
             </div>
             <div className="gfx-close__actions">
-              <code><span>$</span> ssh sshfighter.com</code>
+              <code><span>$</span> ssh -p 2223 sshfighter.com</code>
               <a href="https://github.com/thomasdavis/sshfighter.com/tree/main/src/render" target="_blank" rel="noreferrer">Read the renderer source ↗</a>
             </div>
           </section>

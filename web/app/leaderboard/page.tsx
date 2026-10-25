@@ -77,7 +77,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                     </tr>
                   );
                 })}
-                {players.length === 0 && <tr><td colSpan={8} className="rs-empty" style={{ border: 0 }}>No ranked {open ? 'players' : 'humans'} yet — be the first: <code>ssh sshfighter.com</code></td></tr>}
+                {players.length === 0 && <tr><td colSpan={8} className="rs-empty" style={{ border: 0 }}>No ranked {open ? 'players' : 'humans'} yet — be the first: <code>ssh -p 2223 sshfighter.com</code></td></tr>}
               </tbody>
             </table>
           </div>
