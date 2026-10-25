@@ -49,7 +49,7 @@ export default async function Home() {
             <div className="rs-cta">
               <div className="rs-cmd">
                 <span className="p">$</span>
-                <code>ssh <b>sshfighter.com</b></code>
+                <code>ssh -p 2223 <b>sshfighter.com</b></code>
                 <span className="hint">↵ to play</span>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

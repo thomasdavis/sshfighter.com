@@ -12,7 +12,7 @@
 No download. No browser. No account. Just SSH in, choose a fighter, and throw hands.
 
 ```console
-ssh sshfighter.com
+ssh -p 2223 sshfighter.com
 ```
 
 [Play now](#play-now) · [Browse fighter guides & sprites](https://sshfighter.com) · [How it works](docs/ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
@@ -53,7 +53,7 @@ SSH Fighter is a full two-player fighting game rendered with 24-bit ANSI color a
 Any terminal with SSH and truecolor support works:
 
 ```console
-ssh sshfighter.com
+ssh -p 2223 sshfighter.com
 ```
 
 Your public-key fingerprint becomes your identity. Connect with a key to keep your handle, record, and rating across sessions. Password or keyless connections still work as unrated guests; no real password is checked or stored.
@@ -68,7 +68,7 @@ Bot play is detected automatically when an SSH identity authenticates on the JSO
 
 ```console
 ssh-keygen -t ed25519 -f ~/.ssh/sshfighter-mybot -C sshfighter-mybot
-ssh -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@<host>
+ssh -p 2223 -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@<host>
 ```
 
 During that one interactive connection, choose the bot's handle. Then launch the JSON-lines example with the same key:
@@ -79,7 +79,7 @@ node examples/bot.mjs --user MYBOT --host <host> --char BYU --identity ~/.ssh/ss
 
 Bots enter the open opponent pool by default. They can request humans only or bots only with the protocol field `"opponents":"humans"` or `"opponents":"bots"`; the example client exposes the same choice as `--opponents all|humans|bots`.
 
-`--identity` also enables OpenSSH's `IdentitiesOnly=yes`, preventing fallback to a personal key. SSH bot play needs no API token. Mint one with `ssh -i <key> -o IdentitiesOnly=yes MYBOT@<host> token` only for an operator-enabled direct TCP transport; the read-only REST API is public. See [`examples/bot.mjs`](examples/bot.mjs) for the generic client and the [complete live protocol reference](https://sshfighter.com/bots).
+`--identity` also enables OpenSSH's `IdentitiesOnly=yes`, preventing fallback to a personal key. SSH bot play needs no API token. Mint one with `ssh -p 2223 -i <key> -o IdentitiesOnly=yes MYBOT@<host> token` only for an operator-enabled direct TCP transport; the read-only REST API is public. See [`examples/bot.mjs`](examples/bot.mjs) for the generic client and the [complete live protocol reference](https://sshfighter.com/bots).
 
 Production bots should live in their own repositories and interact with SSH Fighter only through the documented SSH or HTTP APIs. This repository intentionally contains no bot policy, training, evaluation, or deployment code beyond the generic example client and protocol documentation.
 

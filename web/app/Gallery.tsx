@@ -41,7 +41,7 @@ export default function Gallery({ chars, adminEnabled }: { chars: Char[]; adminE
     <div className="wrap">
       <header className="hero">
         <h1>SSH FIGHTER — SPRITE LAB</h1>
-        <p className="sub">Play it in your terminal:&nbsp; <code>ssh sshfighter.com</code></p>
+        <p className="sub">Play it in your terminal:&nbsp; <code>ssh -p 2223 sshfighter.com</code></p>
         <p className="sub">{chars.length} fighters · admin sprite regeneration</p>
       </header>
 

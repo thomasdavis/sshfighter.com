@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const replay = hasReplay(id);
   const ranked = m.mode === 'versus';
   const title = `${m.a_name} vs ${m.b_name} — ${replay ? 'Replay' : 'Match'}`;
-  const description = `${replay ? 'Watch' : 'View'} ${m.a_name} (${m.a_char}) vs ${m.b_name} (${m.b_char}) in a ${ranked ? 'ranked' : 'practice'} SSH Fighter ${replay ? 'replay' : 'match'} on ${m.stage}. Play instantly with ssh sshfighter.com.`;
+  const description = `${replay ? 'Watch' : 'View'} ${m.a_name} (${m.a_char}) vs ${m.b_name} (${m.b_char}) in a ${ranked ? 'ranked' : 'practice'} SSH Fighter ${replay ? 'replay' : 'match'} on ${m.stage}. Play instantly with ssh -p 2223 sshfighter.com.`;
   const url = `/matches/${encodeURIComponent(id)}`;
   const imageUrl = `/og/matches/${encodeURIComponent(id)}`;
   const imageAlt = `${m.a_name} versus ${m.b_name} — watch the SSH Fighter replay`;
@@ -89,7 +89,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </div>
           <p style={{ maxWidth: 720, margin: '16px auto 0', color: 'var(--dim)', fontSize: 14, lineHeight: 1.6, textAlign: 'center' }}>
             {replay ? 'Watch the complete' : 'View the result of this'} {m.a_char} vs {m.b_char} {m.mode === 'versus' ? 'ranked' : 'practice'} match
-            {' '}from SSH Fighter — the terminal fighting game anyone can play with <code style={{ color: 'var(--cyan)' }}>ssh sshfighter.com</code>.
+            {' '}from SSH Fighter — the terminal fighting game anyone can play with <code style={{ color: 'var(--cyan)' }}>ssh -p 2223 sshfighter.com</code>.
           </p>
         </section>
 

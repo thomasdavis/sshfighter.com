@@ -42,7 +42,7 @@ export function Footer() {
       <div className="rs-wrap">
         <div className="rs-footer__arena" aria-hidden="true">
           <span className="rs-footer__fighter a"><Sprite char="BYU" pose="idle_1" /></span>
-          <span className="rs-footer__challenge"><small>THE NEXT ROUND STARTS IN YOUR TERMINAL</small><strong>ssh sshfighter.com</strong></span>
+          <span className="rs-footer__challenge"><small>THE NEXT ROUND STARTS IN YOUR TERMINAL</small><strong>ssh -p 2223 sshfighter.com</strong></span>
           <span className="rs-footer__fighter b"><Sprite char="MEN" pose="idle_1" /></span>
         </div>
         <div className="row">
@@ -54,7 +54,7 @@ export function Footer() {
           <Link href="/status">Server status</Link>
           <a href="https://github.com/thomasdavis/sshfighter.com" target="_blank" rel="noreferrer">GitHub</a>
           <span className="rs-footer__by">Built by <a href="https://twitter.com/ajaxdavis" target="_blank" rel="noreferrer">@ajaxdavis</a> · Co-founders Lisa Watts, Mic Ryan & Russel · <a href="https://ajaxdavis.dev" target="_blank" rel="noreferrer">ajaxdavis.dev</a></span>
-          <span style={{ marginLeft: 'auto' }}>Jump in — <code style={{ color: 'var(--cyan)' }}>ssh sshfighter.com</code></span>
+          <span style={{ marginLeft: 'auto' }}>Jump in — <code style={{ color: 'var(--cyan)' }}>ssh -p 2223 sshfighter.com</code></span>
         </div>
       </div>
     </footer>

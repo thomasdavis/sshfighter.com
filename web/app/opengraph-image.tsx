@@ -33,7 +33,7 @@ export default function OpengraphImage() {
           }}
         >
           <span style={{ color: '#64d878' }}>$</span>
-          <span style={{ color: '#e9e4f2' }}>ssh </span>
+          <span style={{ color: '#e9e4f2' }}>ssh -p 2223 </span>
           <span style={{ color: '#6fe0f0' }}>sshfighter.com</span>
         </div>
       </div>

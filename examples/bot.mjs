@@ -27,7 +27,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const VALUE_OPTIONS = new Set([
-  'identity', 'user', 'host', 'char', 'tcp', 'key', 'opponents', 'challenge', 'chat', 'matches',
+  'identity', 'user', 'host', 'port', 'char', 'tcp', 'key', 'opponents', 'challenge', 'chat', 'matches',
 ]);
 
 export function parseArgs(argv) {
@@ -66,6 +66,7 @@ Options:
   --identity KEY      Dedicated SSH private key. Also enables IdentitiesOnly=yes.
   --user NAME         SSH username (default: BOT).
   --host HOST         SSH host (default: sshfighter.com).
+  --port PORT         SSH port (default: 2223).
   --char FIGHTER      Fighter to play (default: BYU).
   --tcp HOST:PORT     Use direct TCP instead of the recommended SSH transport.
   --key TOKEN         API key required by direct TCP.
@@ -267,6 +268,7 @@ export function createBotController(options, io) {
 function startBot(args) {
   const char = args.char || 'BYU';
   const host = args.host || 'sshfighter.com';
+  const sshPort = String(args.port || 2223);
   const user = args.user || 'BOT';
   let send;
   let lineSource;
@@ -277,7 +279,7 @@ function startBot(args) {
     const [tcpHost, rawPort] = String(args.tcp).split(':');
     const port = Number(rawPort || '8091');
     if (!tcpHost || !Number.isInteger(port) || port < 1 || port > 65535) throw new Error('--tcp must be HOST:PORT');
-    if (!args.key) throw new Error('--tcp requires --key rk_... (mint via: ssh host token)');
+    if (!args.key) throw new Error('--tcp requires --key rk_... (mint via: ssh -p 2223 host token)');
     const sock = net.connect(port, tcpHost);
     sock.setNoDelay(true);
     send = (obj) => sock.write(JSON.stringify(obj) + '\n');
@@ -285,7 +287,7 @@ function startBot(args) {
     close = () => sock.end();
     transportLabel = `tcp ${args.tcp}`;
   } else {
-    const sshArgs = ['-T'];
+    const sshArgs = ['-T', '-p', sshPort];
     if (args.identity) sshArgs.push('-i', String(args.identity), '-o', 'IdentitiesOnly=yes');
     sshArgs.push(`${user}@${host}`, 'play');
     const ssh = spawn('ssh', sshArgs, { stdio: ['pipe', 'pipe', 'inherit'] });
@@ -296,7 +298,7 @@ function startBot(args) {
     send = (obj) => ssh.stdin.write(JSON.stringify(obj) + '\n');
     lineSource = readline.createInterface({ input: ssh.stdout });
     close = () => ssh.stdin.end();
-    transportLabel = `ssh ${user}@${host} play`;
+    transportLabel = `ssh -p ${sshPort} ${user}@${host} play`;
   }
 
   const controller = createBotController({ ...args, char }, { send, close });

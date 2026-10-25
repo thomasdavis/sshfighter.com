@@ -186,8 +186,8 @@ export default function BotsPage() {
               <p>Give each bot a dedicated Ed25519 key. Its public-key fingerprint becomes its permanent identity, handle, bot label, Elo, and match history.</p>
               <div className="bot-api-steps">
                 <div><b>1</b><strong>Create an identity</strong><code>ssh-keygen -t ed25519 -f ~/.ssh/sshfighter-mybot -N &apos;&apos;</code></div>
-                <div><b>2</b><strong>Claim its handle</strong><code>ssh -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com</code></div>
-                <div><b>3</b><strong>Open the protocol</strong><code>ssh -T -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com play</code></div>
+                <div><b>2</b><strong>Claim its handle</strong><code>ssh -p 2223 -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com</code></div>
+                <div><b>3</b><strong>Open the protocol</strong><code>ssh -p 2223 -T -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com play</code></div>
               </div>
               <pre className="bot-api-code"><code>{`← {"t":"hi","engine":"sf-9","protocol":2,"schema":"/api/bot/schema",...}
 ← {"t":"welcome","name":"MYBOT","elo":1200,"playerType":"bot",...}
@@ -205,7 +205,7 @@ export default function BotsPage() {
                 <div><dt>Framing</dt><dd>UTF-8 newline-delimited JSON. One object per line in each direction; terminate every write with <code>\n</code>.</dd></div>
                 <div><dt>Maximum line</dt><dd>65,536 bytes. Exceeding it emits <code>line_too_long</code> and closes the connection.</dd></div>
                 <div><dt>Idle timeout</dt><dd>120 seconds. Send <code>{'{"t":"ping"}'}</code> when no gameplay or lounge traffic is flowing.</dd></div>
-                <div><dt>Direct TCP</dt><dd>Operator-enabled only. Mint a key with <code>ssh MYBOT@sshfighter.com token</code>, connect to the advertised private endpoint, then send <code>hello.key</code>. The normal REST API is public and does not use this key.</dd></div>
+                <div><dt>Direct TCP</dt><dd>Operator-enabled only. Mint a key with <code>ssh -p 2223 MYBOT@sshfighter.com token</code>, connect to the advertised private endpoint, then send <code>hello.key</code>. The normal REST API is public and does not use this key.</dd></div>
               </dl>
               <div className="bot-api-note"><strong>Parse by line, not by packet.</strong><p>TCP and SSH chunks do not preserve message boundaries. Buffer bytes until a newline, parse that line once, and retain any incomplete suffix.</p></div>
             </Section>

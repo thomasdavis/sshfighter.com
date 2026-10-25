@@ -25,7 +25,7 @@ const PLAY_CMDS = new Set(['play', 'bot-play', 'botplay']);
 // starts at the authenticated JSON protocol and may queue or join the lounge.
 function pipeBotPlay(stream: Duplex, fingerprint: string | null, username: string, connectionId: string): void {
   if (!fingerprint) {
-    try { stream.write('Bot play requires an SSH key. Reconnect with a key:\r\n  ssh -i <key> ' + username + '@' + PUBLIC_HOST + ' play\r\n'); } catch { /* ignore */ }
+    try { stream.write('Bot play requires an SSH key. Reconnect with a key:\r\n  ssh -p 2223 -i <key> ' + username + '@' + PUBLIC_HOST + ' play\r\n'); } catch { /* ignore */ }
     try { (stream as unknown as { exit?: (c: number) => void }).exit?.(1); } catch { /* ignore */ }
     try { stream.end(); } catch { /* ignore */ }
     return;
@@ -51,7 +51,7 @@ function mintTokenOverSsh(stream: Duplex, fingerprint: string | null, username: 
   };
   if (!fingerprint) {
     track('bot_token_denied', { connection_id: connectionId, username, reason: 'no_key' });
-    return end('\nBot tokens require an SSH key. Reconnect with a key:\n  ssh -i <your_key> ' + username + '@' + PUBLIC_HOST + ' token\n\n', 1);
+    return end('\nBot tokens require an SSH key. Reconnect with a key:\n  ssh -p 2223 -i <your_key> ' + username + '@' + PUBLIC_HOST + ' token\n\n', 1);
   }
   try {
     const key = mintApiKey(fingerprint, `ssh:${username}`);
@@ -62,7 +62,7 @@ function mintTokenOverSsh(stream: Duplex, fingerprint: string | null, username: 
       `player  : ${player?.username ?? username}\n` +
       `api key : ${key}\n\n` +
       `PLAY (recommended — all over SSH, key-verified):\n` +
-      `  ssh ${username}@${PUBLIC_HOST} play\n` +
+      `  ssh -p 2223 ${username}@${PUBLIC_HOST} play\n` +
       `  then write newline-delimited JSON on stdin:\n` +
       `    {"t":"queue","char":"BYU","opponents":"all"}\n` +
       `    {"t":"joinLounge","char":"FABLE"}\n` +

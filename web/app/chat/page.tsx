@@ -33,7 +33,7 @@ export default async function ChatPage() {
               <h3>Join the room</h3>
               <p>Connect over SSH and open the Fight Lounge from the menu. Your handle is remembered by your key,
                 so people know who they&rsquo;re talking to.</p>
-              <div className="rs-cmd sm"><span className="p">$</span><code>ssh <b>sshfighter.com</b></code><span className="hint">↵ open the lounge</span></div>
+              <div className="rs-cmd sm"><span className="p">$</span><code>ssh -p 2223 <b>sshfighter.com</b></code><span className="hint">↵ open the lounge</span></div>
               <ul className="rs-lounge-side__list" style={{ marginTop: 18 }}>
                 <li>Live roster of who&rsquo;s around</li>
                 <li>Challenge anyone straight to a match</li>

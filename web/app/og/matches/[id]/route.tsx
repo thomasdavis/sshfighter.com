@@ -87,7 +87,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
               borderRadius: 10, padding: '15px 22px', fontSize: 27, fontWeight: 900, letterSpacing: 1,
             }}>{cta}</div>
             <div style={{ display: 'flex', color: '#d5ccdf', fontSize: 23 }}>PLAY FREE ·</div>
-            <div style={{ display: 'flex', color: '#6fe0f0', fontSize: 25, fontWeight: 700 }}>ssh sshfighter.com</div>
+            <div style={{ display: 'flex', color: '#6fe0f0', fontSize: 25, fontWeight: 700 }}>ssh -p 2223 sshfighter.com</div>
           </div>
         </div>
       </div>
